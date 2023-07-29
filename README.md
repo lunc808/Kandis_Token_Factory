@@ -6,8 +6,8 @@ Terraswap-inspired token factory powered by Smart Contracts on the [Terra](https
 
 | Name                                               | Description                                  |
 | -------------------------------------------------- | -------------------------------------------- |
-| [`Kandis_factory`](contracts/terraswap_factory)    | CW20 token launchpad                         |
-| [`Kandis_token`](contracts/terraswap_token)        | CW20 (ERC20 equivalent) token implementation |
+| [`Kandis_factory`]                                 | CW20 token launchpad                         |
+| [`Kandis_token`]                                   | CW20 (ERC20 equivalent) token implementation |
 
 * Kandis_factory (code ID: 7710)
 
