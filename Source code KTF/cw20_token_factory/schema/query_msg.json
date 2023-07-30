@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "get_minted_tokens"
+      ],
+      "properties": {
+        "get_minted_tokens": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
