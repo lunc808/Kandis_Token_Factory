@@ -55,12 +55,7 @@ pub fn execute(
         /* Method executed each time someone send funds to the contract to mint 
         a new token or to increase already existent tokens circulating supply */
         ExecuteMsg::Deposit(deposit_type) => match_deposit(deps.as_ref(), env, info, deposit_type),
-        /* Method used to burn an existent token created thru this contract
-        and send the LUNA back to the address that burn these tokens.*/
-        ExecuteMsg::Burn {
-            amount,
-            token_address,
-        } => execute_burn_from(deps, info, amount, token_address),
+        
     }
 }
 
@@ -77,13 +72,7 @@ pub fn match_deposit(
         DepositType::Instantiate(token_data) => {
             execute_instantiate_token(deps, env, info, token_data)
         }
-        /* If a token_address and recipient is received along with a
-        deposit this method will increase the supply of an already 
-        existent token by the defined units of LUNA received */
-        DepositType::Mint {
-            token_address,
-            recipient,
-        } => execute_mint(deps, info, token_address, recipient),
+       
     }
 }
 
@@ -175,95 +164,6 @@ pub fn get_received_funds(deps: &Deps, info: &MessageInfo) -> Result<Coin, Contr
             Ok(received.clone())
         }
     }
-}
-
-pub fn execute_mint(
-    deps: Deps,
-    info: MessageInfo,
-    token_address: String,
-    recipient: String,
-) -> Result<Response, ContractError> {
-    let received_funds = get_received_funds(&deps, &info)?;
-    let token_addr_from_list = MINTED_TOKENS
-        .load(deps.storage)
-        .unwrap()
-        .into_iter()
-        .find(|t| t == &token_address);
-
-    /* Check if the token to be minted exists in the list, otherwise
-    throw an error because minting mLUNA not be allowed for a token
-    that was not created with this factory */
-    if token_addr_from_list == None {
-        return Err(ContractError::TokenAddressMustBeWhitelisted {});
-    }
-
-    /* Create an execute message to mint new units of an existent token */
-    let execute_mint = WasmMsg::Execute {
-        contract_addr: token_address.clone(),
-        msg: to_binary(&cw20_base::msg::ExecuteMsg::Mint {
-            amount: received_funds.amount,
-            recipient: recipient.clone(),
-        })?,
-        funds: vec![],
-    };
-
-    /* This type of SubMessage will never reply as no further operation is needed, 
-    but for sure the mint call to instantiated cw20_base contract needs to be done.
-    More Info: https://docs.cosmwasm.com/docs/1.0/smart-contracts/message/submessage */
-    let mint_sub_msg = SubMsg::new(execute_mint);
-
-    Ok(Response::new()
-        .add_attribute("method", "mint")
-        .add_submessage(mint_sub_msg))
-}
-
-pub fn execute_burn_from(
-    deps: DepsMut,
-    info: MessageInfo,
-    amount: Uint128,
-    token_address: String,
-) -> Result<Response, ContractError> {
-    let config = CONFIG.load(deps.storage)?;
-    let token_addr_from_list = MINTED_TOKENS
-        .load(deps.storage)
-        .unwrap()
-        .into_iter()
-        .find(|t| t == &token_address);
-
-    /* Check if the token to be burned exists in the list, otherwise
-    throw an error because minting mLUNA not be allowed for a token
-    that was not created thru the factory */
-    if token_addr_from_list == None {
-        return Err(ContractError::TokenAddressMustBeWhitelisted {});
-    }
-
-    /* Amount of tokens to be burned mLUNA not be zero */
-    if amount.is_zero() {
-        return Err(ContractError::NotAllowZeroAmount {});
-    }
-
-    /* Create a SubMessage to decrease the circulating supply of existent 
-    CW20 Tokens from the token_address.
-    https://github.com/CosmWasm/cosmwasm/blob/main/SEMANTICS.md#submessages */
-    let sub_msg_burn = SubMsg::new(WasmMsg::Execute {
-        contract_addr: token_address.clone(),
-        msg: to_binary(&cw20_base::msg::ExecuteMsg::BurnFrom {
-            owner: info.sender.to_string(),
-            amount,
-        })?,
-        funds: vec![],
-    });
-
-    /* Create a SubMessage to transfer fund from this smart contract to
-    the address that burns the CW20 Tokens*/
-    let sub_msg_send = SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
-        to_address: info.sender.to_string(),
-        amount: coins(amount.u128(), config.stable_denom),
-    }));
-
-    Ok(Response::new()
-        .add_attribute("method", "burn")
-        .add_submessages(vec![sub_msg_burn, sub_msg_send]))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

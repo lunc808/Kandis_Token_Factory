@@ -20,12 +20,7 @@ pub enum ExecuteMsg {
     the new pegged token 1:1 with LUNA or to increase circulation supply. */
     Deposit(DepositType),
 
-    /* Handle burn of pegged tokens 1:1 with LUNA which are added to
-    MINTED_TOKENS list and return the LUNA stored into the contract. */
-    Burn {
-        amount: Uint128,
-        token_address: String
-    }
+    
 }
 
 
@@ -34,12 +29,7 @@ pub enum ExecuteMsg {
 pub enum DepositType {
     /* Instantiate a CW20_base token */
     Instantiate(cw20_base::msg::InstantiateMsg),
-    /* Create new tokens based on token_address, amount of LUNA send to 
-    this contract and recipient address */
-    Mint {
-        token_address: String,
-        recipient: String,
-    }
+    
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
