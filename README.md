@@ -9,9 +9,9 @@ Terraswap-inspired token factory powered by Smart Contracts on the [Terra](https
 | [`Kandis_factory`]                                 | CW20 token launchpad                         |
 | [`Kandis_token`]                                   | CW20 (ERC20 equivalent) token implementation |
 
-* Kandis_factory (code ID: 7710)
+* Kandis_factory (code ID: 7805)
 
-  Colombus-5: "terra1dpnezyva7pwd2c05zxuzrmf0t9x6jrlx9jgp5gmxlhejleh4ap9qjrqdls"
+  Colombus-5: "terra1sekcd4jgrxzk4pnne6e577fz9lg6ywch7t69eqxnms882nu2w2gqxf74kg"
 
 * Kandis_token (code ID: 7706)
 
