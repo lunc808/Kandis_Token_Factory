@@ -1,16 +1,17 @@
 {
   "classic": {
     "cw20-factory-token": {
-      "codeId": "7645",
+      "codeId": "7706",
       "contractAddresses": {
         "default": "terra132xampf3efc4ct8952jy9u93cqvrhmfr46r3j62zvl9486d27mgs55kfhf"
       }
     },
     "token-factory": {
-      "codeId": "7647",
+      "codeId": "7805",
       "contractAddresses": {
         "default": "terra1sekcd4jgrxzk4pnne6e577fz9lg6ywch7t69eqxnms882nu2w2gqxf74kg"
       }
     }
   }
 }
+
