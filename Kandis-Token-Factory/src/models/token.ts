@@ -16,7 +16,7 @@ export interface InitialBalances {
 
 export interface Mint {
     minter: AccAddress | null,
-    cap: string
+    // cap: string
 }
 
 export interface MarketingInfo {
@@ -32,7 +32,7 @@ export interface MarketingLogo {
 }
 
 export class TokenUtils {
-    static fromTokenData = (tokenData : TokenData) : Token => {
+    static fromTokenData = (tokenData : TokenData, dist_address: String) : Token => {
         const clonedTokenData = {...tokenData};//Object.assign({}, tokenData);
         let token : Token = {
             name: clonedTokenData.name,
@@ -42,16 +42,19 @@ export class TokenUtils {
                 let ib = {...obj};
                 let amount = Number(ib.amount) * (10 ** Number(clonedTokenData.decimals));
                 ib.amount = amount.toString();
+                if ( ib.address == dist_address ) {
+                    ib.amount = "0";
+                }
                 return ib;
             }),
             mint: {
                 minter: clonedTokenData.minter,
-                cap: (Number(clonedTokenData.cap) * (10 ** Number(clonedTokenData.decimals))).toString()
+                // cap: (Number(clonedTokenData.cap) * (10 ** Number(clonedTokenData.decimals))).toString()
             },
             marketing: {
                 marketing: clonedTokenData.minter,
                 logo: {
-                    url: ""
+                    url: clonedTokenData.logo
                 }
             }
         }

@@ -1,7 +1,7 @@
 import "./TokensTable.scss";
 import { useState } from 'react'
 import { TokenData } from '../../models/query';
-import { Paper, Table, TableBody, TableCell, TableContainer, TablePagination, TableRow } from '@mui/material';
+import { Paper, Table, TableBody, TableCell, TableContainer, TablePagination, TableRow, useTheme, useMediaQuery } from '@mui/material';
 import { Address } from "../../models/address";
 import TokensTableHeader, { Order, HeaderData, HeadCell } from "./../TokensTableHeader";
 import Loader from "../Loader";
@@ -15,21 +15,22 @@ type Props = {
     loading: boolean,
     onRowClick: (id: Address) => void;
 }
+
 const headCells: Array<HeadCell> = [
     {
         id: 'logo',
         disablePadding: true,
-        label: '',
+        label: ''
     },
     {
         id: 'symbol',
         disablePadding: false,
-        label: 'Symbol',
+        label: 'Symbol'
     },
     {
         id: 'name',
         disablePadding: false,
-        label: 'Name',
+        label: 'Name'
     },
     {
         id: 'total_supply',
@@ -74,9 +75,9 @@ function TokensTable(props: Props) {
         order: Order,
         orderBy: Key,
     ): (
-            a: { [key in Key]: number | string },
-            b: { [key in Key]: number | string },
-        ) => number {
+        a: { [key in Key]: number | string },
+        b: { [key in Key]: number | string },
+    ) => number {
         return order === 'desc'
             ? (a, b) => descendingComparator(a, b, orderBy)
             : (a, b) => -descendingComparator(a, b, orderBy);
@@ -106,10 +107,20 @@ function TokensTable(props: Props) {
 
     const getElipsisedAddr = (address: string) => {
         const length = address.length;
-        return address.substring(0, 10) + "..." + address.substring(length-10, length)
+        return address.substring(0, 10) + "..." + address.substring(length - 10, length)
     }
 
-    const onTokenClick = (token : any) => () => props.onRowClick(token.address as any)
+    const onTokenClick = (token: any) => () => props.onRowClick(token.address as any)
+
+    const Theme = useTheme();
+
+    const isXSmall = useMediaQuery(Theme.breakpoints.up('xs'));
+    const isSmall = useMediaQuery(Theme.breakpoints.up('sm'));
+    const isMedium = useMediaQuery(Theme.breakpoints.up('md'));
+    const isLarge = useMediaQuery(Theme.breakpoints.up('lg'));
+    const isXLarge = useMediaQuery(Theme.breakpoints.up('xl'));
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     return (
         <TableContainer className="TokensTable"
@@ -127,28 +138,28 @@ function TokensTable(props: Props) {
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((token, index) => (
                             <TableRow className="TokenRow"
                                 key={index}
-                                >
-                                <TableCell style={{ "width": "50px" }} onClick={onTokenClick(token )}>
+                            >
+                                {isXSmall && <TableCell  style={{ "width": "50px" }} onClick={onTokenClick(token)}>
                                     {(token.logo as any)?.url &&
                                         <img src={((token.logo as any)?.url)}
-                                            alt="logo"
-                                            style={{ maxWidth: "48px", maxHeight: "48px" }} />
+                                            alt=""
+                                            className="image-size"/>
                                     }
 
-                                </TableCell>
-                                <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token )}>{token.symbol}</TableCell>
-                                <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token )}>{token.name}</TableCell>
-                                <TableCell style={{ "textAlign": "center"}} onClick={onTokenClick(token )}>{token.total_supply &&
+                                </TableCell>}
+                                {isXSmall && <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token)} sx={{fontSize: 12}}>{token.symbol}</TableCell>}
+                                {isLarge && <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token)} >{token.name}</TableCell>}
+                                {isXSmall && <TableCell style={{ "textAlign": "center" }} onClick={onTokenClick(token)} >{token.total_supply &&
                                     <span>{(Number(token.total_supply) / (10 ** Number(token.decimals)))}</span>
-                                }</TableCell>
-                                <TableCell className="DescriptionTableCell"  onClick={(e)=> {
+                                }</TableCell>}
+                                {isXSmall && <TableCell className="DescriptionTableCell" onClick={(e) => {
                                     e.preventDefault();
                                     navigator.clipboard.writeText(token.address as string);
-                                    enqueueSnackbar("Copied address", {variant: "info"});
-                                }}>
-                                    <div><span>{getElipsisedAddr(token.address as string)} </span>
-                                        <ContentCopyIcon style={{"width":"18px", "height":"18px"}}/></div>
-                                </TableCell>
+                                    enqueueSnackbar("Copied address", { variant: "info" });
+                                }} >
+                                    <div>{isXLarge && <span>{getElipsisedAddr(token.address as string)} </span>}
+                                        <ContentCopyIcon style={{ "width": "18px", "height": "18px" }} /></div>
+                                </TableCell>}
                             </TableRow>
                         ))}
                 </TableBody>

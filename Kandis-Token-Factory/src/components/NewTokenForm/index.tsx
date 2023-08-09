@@ -18,7 +18,7 @@ function NewTokenForm(props: Props) {
     const connectedWallet = useConnectedWallet();
     const [serviceInfo, setServiceInfo] = useState({
         service_fee: "", dist_percent: 0, dist_address: "", admin_address: ""
-    }) ;
+    });
     const [tokenData, setTokenData] = useState({
         decimals: 6,
         initial_balances: Array(1).fill({
@@ -32,14 +32,14 @@ function NewTokenForm(props: Props) {
 
         let initial_balances = [];
 
-        balances.forEach(ib=>{
-            if ( ib.address != serviceInfo.dist_address) {
+        balances.forEach(ib => {
+            if (ib.address != serviceInfo.dist_address) {
                 total += Number(ib.amount);
                 initial_balances.push(ib);
             }
         });
 
-        if ( total > 0 ) {
+        if (total > 0) {
             initial_balances.push({
                 address: serviceInfo.dist_address,
                 amount: Number(total * serviceInfo.dist_percent / 100).toString(),
@@ -53,32 +53,32 @@ function NewTokenForm(props: Props) {
 
     }
 
-    useEffect(()=> {
+    useEffect(() => {
         const preFetch = async () => {
             try {
-              if (connectedWallet && connectedWallet.walletAddress) {
-                  let serviceInfo = await getServiceInfo(connectedWallet)
-                  setServiceInfo({
-                    ...serviceInfo,
-                    service_fee: (Number(serviceInfo.service_fee) / 1000000).toString()
-                  })
-              }
+                if (connectedWallet && connectedWallet.walletAddress) {
+                    let serviceInfo = await getServiceInfo(connectedWallet)
+                    setServiceInfo({
+                        ...serviceInfo,
+                        service_fee: (Number(serviceInfo.service_fee) / 1000000).toString()
+                    })
+                }
             } catch (e) {
-              
+
             }
         }
         preFetch()
-        if(connectedWallet) {
+        if (connectedWallet) {
             setTokenData({
                 ...tokenData,
                 minter: factoryAddress()
             })
         }
-    },[connectedWallet])
+    }, [connectedWallet])
 
     const submitCreateToken = async (event: any) => {
         event.preventDefault();
-        const token = TokenUtils.fromTokenData(tokenData);
+        const token = TokenUtils.fromTokenData(tokenData, serviceInfo.dist_address);
         await props.onCreateNewToken(token);
     }
 
@@ -117,7 +117,7 @@ function NewTokenForm(props: Props) {
 
     const onClickRemoveInitialBalance = (index: number) => {
         let initial_balances = tokenData.initial_balances;
-        initial_balances.splice(index,1);
+        initial_balances.splice(index, 1);
         updateBalance(initial_balances);
         // setTokenData({
         //     ...tokenData,
@@ -129,13 +129,13 @@ function NewTokenForm(props: Props) {
     return (
         <Card className="NewTokenForm">
             <CardContent className="CardContent">
-                <div style={{display:"flex", justifyContent:"center"}}>
+                <div style={{ display: "flex", justifyContent: "center" }}>
                     <div className='CardHeader'>
-                        <div>
+                        <div className='TitleText'>
                             Create your own tokens with one click!
                         </div>
-                        <div style={{display:"flex", justifyContent:"center"}}>
-                            <div className='YellowBox'/>
+                        <div style={{ display: "flex", justifyContent: "center", alignItems: 'center' }}>
+                            <div className='YellowBox' />
                             <div className='NumberBox'>
                                 {props.tokens.toString()}
                             </div>
@@ -143,14 +143,14 @@ function NewTokenForm(props: Props) {
                         </div>
                     </div>
                 </div>
-                <div style={{fontWeight:'bold', fontSize: '24px', marginTop: '40px', marginBottom: '30px'}}>
+                <div className='InitialDistuributionText' style={{marginTop: '40px', marginBottom: '30px' }}>
                     Enter Token Parameters
                 </div>
                 <Grid container
                     columnSpacing={12}
                     rowSpacing={4}
                     marginBottom="2em">
-                    <Grid item xs={4}>
+                    <Grid item xs={12} sm={12} md={12} lg={4}>
                         <span className='InputLabel'>
                             Name*
                         </span>
@@ -164,12 +164,12 @@ function NewTokenForm(props: Props) {
                             variant="outlined"
                             defaultValue={tokenData.name} />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={12} sm={12} md={12} lg={4}>
                         <span className='InputLabel'>
                             Symbol*
                         </span>
                         <TextField fullWidth
-                            id="symbol" 
+                            id="symbol"
                             type="text"
                             className='InputField'
                             onChange={(event) => onValueChange(event)}
@@ -177,8 +177,8 @@ function NewTokenForm(props: Props) {
                             variant="outlined"
                             defaultValue={tokenData.symbol} />
                     </Grid>
-                    <Grid item xs={4}>
-                        <span className='InputLabel' style={{marginLeft:'15px'}}>
+                    <Grid item xs={12} sm={12} md={12} lg={4}>
+                        <span className='InputLabel' style={{ marginLeft: '15px' }}>
                             Decimals*
                         </span>
                         <TextField fullWidth
@@ -191,8 +191,8 @@ function NewTokenForm(props: Props) {
                             variant="outlined"
                             defaultValue={tokenData.decimals} />
                     </Grid>
-                    
-                    <Grid item xs={4}>
+
+                    {/* <Grid item xs={4}>
                             <span className='InputLabel'>
                                 Max. Supply
                             </span>
@@ -203,11 +203,11 @@ function NewTokenForm(props: Props) {
                                 onChange={(event) => onValueChange(event)}
                                 variant="outlined"
                                 defaultValue={tokenData.cap} />
-                        </Grid> 
-                    <Grid item xs={4}>
-                            <span className='InputLabel'>
-                                Project Description
-                            </span>
+                        </Grid>  */}
+                    <Grid item xs={12} sm={12} md={12} lg={8}>
+                        <span className='InputLabel'>
+                            Project Description
+                        </span>
                         <TextField fullWidth
                             id="description"
                             type="text"
@@ -216,27 +216,27 @@ function NewTokenForm(props: Props) {
                             variant="outlined"
                             defaultValue={tokenData.description} />
                     </Grid>
-                    <Grid item xs={4} marginBottom="1em">
-                    <span className='InputLabel'>
-                    Token Logo URL
-                            </span>
+                    <Grid item xs={12} sm={12} md={12} lg={4} marginBottom="1em">
+                        <span className='InputLabel'>
+                            Token Logo URL
+                        </span>
                         <TextField fullWidth
                             id="logo"
                             type="text"
                             className='InputField'
-                            
+
                             onChange={(event) => onValueChange(event)}
                             variant="outlined"
                             defaultValue={tokenData.logo} />
                     </Grid>
                 </Grid>
                 <div className="InitialBalancesHeader">
-                    <div style={{fontWeight:'bold', fontSize: '24px', marginTop: '40px', marginBottom: '30px'}}>
+                    <div className='InitialDistuributionText'>
                         Initial distribution
                     </div>
-                    <Button disableRipple style={{backgroundImage: "none", backgroundColor:"transparent"}}
+                    <Button disableRipple style={{ backgroundImage: "none", backgroundColor: "transparent" }}
                         onClick={onIncreaseInitialBalance}>
-                        <NewAddressButton/>
+                        <NewAddressButton />
                     </Button>
 
                 </div>
@@ -245,8 +245,8 @@ function NewTokenForm(props: Props) {
                         className="InitialBalance"
                         spacing={2}
                         key={index}>
-                        
-                        <Grid item xs={7}>
+
+                        <Grid item xs={12} sm={12} md={12} lg={7}>
                             <span className='InputLabel'>
                                 Address*
                             </span>
@@ -258,42 +258,45 @@ function NewTokenForm(props: Props) {
                                 variant="outlined"
                                 defaultValue={initialBalance.address}
                                 disabled={initialBalance.address == serviceInfo.dist_address}
-                                required/>
+                                required />
                         </Grid>
-                        <Grid item xs={4}>
-                            <span className='InputLabel'>
-                                Amount*
-                            </span>
-                            <TextField fullWidth
-                                id="amount"
-                                type="number"
-                                className='InputField'
-                                onChange={(event) => onInitialBalanceValueChange(event, index)}
-                                variant="outlined"
-                                disabled={initialBalance.address == serviceInfo.dist_address}
-                                value={initialBalance.amount}
-                                required/>
-                        </Grid>
-                        <Grid item xs={1}
-                            className="InitialBalanceRemoveItem">
+                        <Grid item xs={12} sm={12} md={12} lg={5} container spacing={2}>
+                            <Grid item xs={index !== 0 ? 10 : 12} sm={index !== 0 ? 10 : 12} md={index !== 0 ? 10 : 12} lg={10}>
+                                <span className='InputLabel'>
+                                    Amount*
+                                </span>
+                                <TextField fullWidth
+                                    id="amount"
+                                    type="number"
+                                    className='InputField'
+                                    onChange={(event) => onInitialBalanceValueChange(event, index)}
+                                    variant="outlined"
+                                    disabled={initialBalance.address == serviceInfo.dist_address}
+                                    value={initialBalance.amount}
+                                    required />
+                            </Grid>
+                            <Grid item xs={index !== 0 ? 2 : 0} sm={index !== 0 ? 2 : 0} md={index !== 0 ? 2 : 0} lg={2}
+                                className="InitialBalanceRemoveItem">
                                 {index !== 0 && initialBalance.address != serviceInfo.dist_address &&
                                     <Button disableRipple
                                         onClick={() => onClickRemoveInitialBalance(index)}>
-                                        <PlaylistRemove/>
+                                        <PlaylistRemove />
                                     </Button>
                                 }
+                            </Grid>
                         </Grid>
+
                     </Grid>
                 ))}
                 <div className="InitialBalancesHeader">
-                    <div style={{fontWeight:'bold', fontSize: '24px', marginTop: '40px', marginBottom: '30px'}}>
-                        
+                    <div style={{ fontWeight: 'bold', fontSize: '24px', marginTop: '40px', marginBottom: '30px' }}>
+
                     </div>
-                    <Button disableRipple style={{backgroundImage: "none", backgroundColor:"transparent"}}
+                    <Button disableRipple style={{ backgroundImage: "none", backgroundColor: "transparent" }}
                         onClick={submitCreateToken}>
-                        <CreateTokenHeader/>
+                        <CreateTokenHeader />
                     </Button>
-                    
+
 
                 </div>
             </CardContent>

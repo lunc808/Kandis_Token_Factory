@@ -1,10 +1,10 @@
 
 
 function CreateTokenHeader() {
-    
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     return (
         <div>
-            <svg width="193" height="50" viewBox="0 0 193 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width={isMobile ? "130" : "193"} height="50" viewBox="0 0 193 50" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="1" y="1" width="191" height="48" rx="8" fill="#333333" stroke="#434343"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M37.3561 30.0195C35.6627 29.3867 33.8009 29.0526 31.9031 29.0526C29.1119 29.0526 26.3987 29.7752 24.1843 31.1082C22.3412 32.2177 20.9294 33.6986 20.0912 35.3836C19.8237 35.9213 20.1738 36.5343 20.7615 36.6579L23.4439 37.2217C28.027 38.1852 32.7358 38.3347 37.3561 37.6714V36.3157H34.7208C33.0639 36.3157 31.7208 34.9726 31.7208 33.3157C31.7208 31.6589 33.0639 30.3157 34.7208 30.3157L37.3561 30.3157V30.0195Z" fill="white"/>
 <path d="M40.356 27.6316L40.356 39" stroke="white" stroke-width="2.5" stroke-linecap="round"/>

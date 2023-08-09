@@ -30,7 +30,7 @@ function Tokens() {
 
                 tokens = tokens.map(token => {
                     return {
-                        ...token, 
+                        ...token,
                         total_supply: Number(token.total_supply)
                     }
                 });
@@ -45,15 +45,15 @@ function Tokens() {
         preFetch()
     }, [status, connectedWallet]);
 
-    const onRowClick =  (address : Address) => navigate(`/tokens/${address}`);
+    const onRowClick = (address: Address) => navigate(`/tokens/${address}`);
 
     return (
         <div className="Tokens">
-            <div style={{display:"flex", justifyContent:"space-between"}}>
-                <TokensListHeader/>
-                { connectedWallet && <Button disableRipple style={{backgroundImage: "none", backgroundColor:"transparent"}}
-                    onClick={()=>{ navigate("/create-token");}}>
-                    <CreateTokenHeader/>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <TokensListHeader />
+                {connectedWallet && <Button disableRipple style={{ backgroundImage: "none", backgroundColor: "transparent" }}
+                    onClick={() => { navigate("/create-token"); }}>
+                    <CreateTokenHeader />
                 </Button>}
             </div>
             <TokensTable tokens={tokens}

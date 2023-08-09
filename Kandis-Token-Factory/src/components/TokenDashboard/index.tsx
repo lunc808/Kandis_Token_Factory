@@ -10,11 +10,11 @@ type Props = {
 }
 
 const getElipsisedAddr = (address: string) => {
-    if ( !address ) {
+    if (!address) {
         return "";
     }
     const length = address.length;
-    return address.substring(0, 10) + "..." + address.substring(length-4, length)
+    return address.substring(0, 10) + "..." + address.substring(length - 4, length)
 }
 
 function TokenDashboard(props: Props) {
@@ -26,23 +26,23 @@ function TokenDashboard(props: Props) {
             container
             alignItems="center"
             spacing={3}>
-            <Grid item xs={4}>
-                <Card className="TokenCard" style={{"cursor":"pointer"}} onClick={(e)=> {
+            <Grid item xs={6} sm={6} md={3} >
+                <Card className="TokenCard" style={{ "cursor": "pointer" }} onClick={(e) => {
                     e.preventDefault();
                     const addr = token.address as string;
-                    if ( navigator.clipboard ) {
+                    if (navigator.clipboard) {
                         navigator.clipboard.writeText(addr);
                     } else {
                         const textArea = document.createElement("textarea");
                         textArea.value = addr;
-                            
+
                         // Move textarea out of the viewport so it's not visible
                         textArea.style.position = "absolute";
                         textArea.style.left = "-999999px";
-                            
+
                         document.body.prepend(textArea);
                         textArea.select();
-                
+
                         try {
                             document.execCommand('copy');
                         } catch (error) {
@@ -51,33 +51,33 @@ function TokenDashboard(props: Props) {
                             textArea.remove();
                         }
                     }
-                    
-                    enqueueSnackbar("Copied address", {variant: "info"});
+
+                    enqueueSnackbar("Copied address", { variant: "info" });
                 }}>
                     <CardHeader className="TokenCardHeader" title="Address" />
                     <CardContent className="TokenCardContent">
                         {getElipsisedAddr(token.address as string)}
-                        <ContentCopyIcon style={{"width":"32px", "height":"18px"}}/>
+                        <ContentCopyIcon style={{ "width": "32px", "height": "18px" }} />
                     </CardContent>
                 </Card>
             </Grid>
 
 
-            <Grid item xs={2}>
+            <Grid item xs={6} sm={6} md={3}>
                 <Card className="TokenCard">
                     <CardHeader className="TokenCardHeader" title="Name" />
                     <CardContent className="TokenCardContent">{token.name}</CardContent>
                 </Card>
             </Grid>
 
-            <Grid item xs={2}>
+            <Grid item xs={6} sm={6} md={3}>
                 <Card className="TokenCard">
                     <CardHeader className="TokenCardHeader" title="Symbol" />
                     <CardContent className="TokenCardContent">{token.symbol}</CardContent>
                 </Card>
             </Grid>
 
-            <Grid item xs={2}>
+            <Grid item xs={6} sm={6} md={3}>
                 <Card className="TokenCard">
                     <CardHeader className="TokenCardHeader" title="Total Supply" />
                     <CardContent className="TokenCardContent">
@@ -88,14 +88,14 @@ function TokenDashboard(props: Props) {
                 </Card>
             </Grid>
 
-            <Grid item xs={2}>
+            {/* <Grid item xs={2}>
                 <Card className="TokenCard">
                     <CardHeader className="TokenCardHeader" title="Max. Supply" />
                     <CardContent className="TokenCardContent">
                         {token.cap ? Number(token.cap) / 10 ** Number(token.decimals): "Infinity"}
                     </CardContent>
                 </Card>
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12}></Grid>
         </Grid>

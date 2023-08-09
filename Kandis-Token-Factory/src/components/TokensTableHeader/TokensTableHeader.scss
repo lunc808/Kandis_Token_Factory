@@ -1,21 +1,119 @@
 .TokensTableHeader {
 
     .logo {
+        @media only screen and (min-width: 375px) {
+
+            fontSize: 12px;
+            paddingLeft: 10px;
+            paddingRight: 10px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 600px) {
+
+            fontSize: 16px;
+            paddingLeft: 15px;
+            paddingRight: 15px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 768px) {
+
+            fontSize: 20px;
+            paddingLeft: 20px;
+            paddingRight: 20px;
+            width: 'fit-content'
+        }
+
         min-width: 64px;
+
     }
 
     .symbol {
+        @media only screen and (min-width: 375px) {
+
+            fontSize: 12px;
+            paddingLeft: 10px;
+            paddingRight: 10px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 600px) {
+
+            fontSize: 16px;
+            paddingLeft: 15px;
+            paddingRight: 15px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 768px) {
+
+            fontSize: 20px;
+            paddingLeft: 20px;
+            paddingRight: 20px;
+            width: 'fit-content'
+        }
+
         min-width: 100px;
 
     }
 
     .name {
+        @media only screen and (min-width: 375px) {
+
+            fontSize: 12px;
+            paddingLeft: 10px;
+            paddingRight: 10px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 600px) {
+
+            fontSize: 16px;
+            paddingLeft: 15px;
+            paddingRight: 15px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 768px) {
+
+            fontSize: 20px;
+            paddingLeft: 20px;
+            paddingRight: 20px;
+            width: 'fit-content'
+        }
+
         min-width: 150px;
-        
+
     }
 
     .total_supply {
+
+        @media only screen and (min-width: 375px) {
+
+            fontSize: 12px;
+            paddingLeft: 10px;
+            paddingRight: 10px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 600px) {
+
+            fontSize: 16px;
+            paddingLeft: 15px;
+            paddingRight: 15px;
+            width: 'fit-content'
+        }
+
+        @media only screen and (min-width: 768px) {
+
+            fontSize: 20px;
+            paddingLeft: 20px;
+            paddingRight: 20px;
+            width: 'fit-content'
+        }
+
         min-width: 104px;
-        
+
     }
 }

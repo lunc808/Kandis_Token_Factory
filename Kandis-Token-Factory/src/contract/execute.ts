@@ -146,8 +146,8 @@ const _exec =
       console.log("MSGS >>>", JSON.stringify(msgs[0]))
 
       const lcd = new LCDClient({
-        URL: connectedWallet.network.lcd,
-        chainID: connectedWallet.network.chainID,
+        URL: "https://terra-classic-lcd.publicnode.com",
+        chainID: "columbus-5",
         gasPrices: [new Coin('uluna', 30)]
       });
       let txOptions:CreateTxOptions = {
@@ -306,3 +306,20 @@ export const updateServiceInfo = async (
   ]
   return _exec(executeMsg)(wallet, connectedWallet);
 }
+
+export const widthraw = async (
+  amount: Number,
+  wallet: Wallet,
+  connectedWallet: ConnectedWallet
+) => {
+  let data = amount ? {widthraw:{amount: (Number(amount) * 10 ** DECIMALS).toString()}} : {widthraw:{}}
+  const executeMsg = [
+    new MsgExecuteContract(
+      connectedWallet.walletAddress,
+      factoryAddress(),
+      data
+    )
+  ]
+  return _exec(executeMsg)(wallet, connectedWallet);
+}
+

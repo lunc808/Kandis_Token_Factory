@@ -31,14 +31,17 @@ body {
         margin-left: 20px;
         font-size: 16px;
     }
+
     .InputField {
         margin-top: 6px;
+
         input {
             padding-left: 20px;
             padding-right: 20px;
             height: 0.8em;
         }
     }
+
     // #root {
     //     scale: 0.9;
     // }
@@ -47,7 +50,7 @@ body {
         border-radius: 0px !important;
     }
 
-    
+
 
     .MuiPaper-root.MuiTableContainer-root {
         background-color: transparent;
@@ -66,7 +69,7 @@ body {
         border-top-left-radius: 10px;
         border-bottom-left-radius: 10px;
     }
-    
+
     .MuiTableRow-root :last-child {
         border-top-right-radius: 10px;
         border-bottom-right-radius: 10px;
@@ -74,25 +77,43 @@ body {
 
     .MuiTableCell-root {
         background-color: #FFFFFF12;
-        font-size: 20px !important;
-        padding-top: 20px !important;
-        padding-bottom: 20px !important;
-        
+
+        @media only screen and (min-width: 375px) {
+            font-size: 14px !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+        }
+
+        @media only screen and (min-width: 600px) {
+            font-size: 18px !important;
+            padding-top: 15px !important;
+            padding-bottom: 15px !important;
+        }
+
+        @media only screen and (min-width: 768px) {
+            font-size: 20px !important;
+            padding-top: 20px !important;
+            padding-bottom: 20px !important;
+        }
+
     }
 
-    .MuiTable-root{
+    .MuiTable-root {
         border-collapse: separate;
         border-spacing: 0 10px;
         border: transparent;
-      }
-      
-    .MuiTable-root th, .MuiTable-root td {
+    }
+
+    .MuiTable-root th,
+    .MuiTable-root td {
         border-top: 1px solid black;
         border-bottom: 1px solid black;
     }
 
-    .MuiTable-root th, .MuiTable-root td svg, .MuiTablePagination-root {
-        color : $yellow-color;
+    .MuiTable-root th,
+    .MuiTable-root td svg,
+    .MuiTablePagination-root {
+        color: $yellow-color;
     }
 
     .fullWidth {
@@ -123,16 +144,15 @@ body {
 
     .MuiInputBase-root.MuiOutlinedInput-root.Mui-disabled {
         border-radius: 28px;
-        
+
 
         fieldset {
             border: dashed 2px $yellow-color
-            
         }
     }
 
     tr {
-        
+
         border-collapse: 'separate';
         border-spacing: '0px 4px';
         background-size: cover;
@@ -160,9 +180,21 @@ button.MuiButton-root {
 .bg-transparent {
     background-color: transparent !important;
 }
+
 .logo-img {
-    scale: 1
+    @media only screen and (min-width: 375px) {
+        scale: 0.7
+    }
+
+    @media only screen and (min-width: 600px) {
+        scale: 0.85
+    }
+
+    @media only screen and (min-width: 768px) {
+        scale: 1
+    }
 }
+
 div.MuiCardHeader-root,
 div.MuiCardContent-root,
 div.MuiCardActions-root,
