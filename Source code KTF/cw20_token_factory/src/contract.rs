@@ -1,13 +1,19 @@
+use std::borrow::BorrowMut;
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::vec;
 
 use crate::error::ContractError;
-use crate::msg::{DepositType, ExecuteMsg, InstantiateMsg, MigrateMsg, MintedTokens, QueryMsg};
-use crate::state::{Config, CONFIG, MINTED_TOKENS};
+use crate::msg::{DepositType, ExecuteMsg, InstantiateMsg, MigrateMsg, MintedTokens, QueryMsg, ServiceInfo, QueryFactoryTokenMessage, FactoryTokenBalance};
+use crate::state::{Config, CONFIG, MINTED_TOKENS, TokenData};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    coins, to_binary, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply,
-    Response, StdError, StdResult, SubMsg, Uint128, WasmMsg,
+    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Reply,
+    Response, StdError, StdResult, SubMsg, Uint128, WasmMsg, from_binary, BankMsg, QueryRequest, QuerierWrapper,
+};
+use cw20::{
+    BalanceResponse as CW20BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg, Cw20ReceiveMsg, Denom,
+    TokenInfoResponse, Cw20Coin,
 };
 use cw2::set_contract_version;
 
@@ -28,8 +34,13 @@ pub fn instantiate(
     created and also which kind of token would you like to mint based on
     the code id of the contract deployed */
     let state = Config {
-        stable_denom: msg.stable_denom.to_string(),
         token_contract_code_id: msg.token_contract_code_id,
+        native_factory_token_address: msg.native_factory_token_address,
+        service_fee: msg.service_fee.unwrap_or(Uint128::new(20000000)),
+        min_feature_cost: msg.min_feature_cost.unwrap_or(Uint128::new(20000000)),
+        dist_address: msg.dist_address.unwrap_or("terra1yqx43ej26lqxg8ceepwcl663l8dc6vznjzmgcy".to_string()),
+        dist_percent: msg.dist_percent.unwrap_or(2),
+        admin_address: msg.admin_address.unwrap_or("terra1yqx43ej26lqxg8ceepwcl663l8dc6vznjzmgcy".to_string())
     };
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
@@ -52,55 +63,63 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        /* Method executed each time someone send funds to the contract to mint 
-        a new token or to increase already existent tokens circulating supply */
-        ExecuteMsg::Deposit(deposit_type) => match_deposit(deps.as_ref(), env, info, deposit_type),
-        
+        ExecuteMsg::Receive(msg) => execute_receive(deps, env, info, msg),
+        ExecuteMsg::UpdateServiceInfo{service_fee, dist_percent, dist_address, admin_address} 
+            => execute_update_service_info(deps, info, service_fee, dist_percent, dist_address, admin_address),
+        /* Method used to burn an existent token created thru this contract
+        and send the LUNA back to the address that burn these tokens.*/
+        ExecuteMsg::Widthdraw { amount } => execute_withdraw(deps, info, amount),
+        ExecuteMsg::ImportToken { token } => execute_import(deps, info, token),
     }
 }
 
-pub fn match_deposit(
-    deps: Deps,
+pub fn execute_receive(
+    deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    deposit_type: DepositType,
+    wrapper: Cw20ReceiveMsg,
 ) -> Result<Response, ContractError> {
-    match deposit_type {
-        /* When the InstantiateMsg struct is send the factory will 
-        execute this code and a new token with the defined properties
-        will be minted */
+    let cfg = CONFIG.load(deps.storage)?;
+    if wrapper.amount == Uint128::zero() {
+        return Err(ContractError::InvalidInput {});
+    }
+
+    if info.sender.clone() != cfg.native_factory_token_address {
+        return Err(ContractError::UnacceptableToken {});
+    }
+
+    let msg: DepositType = from_binary(&wrapper.msg)?;
+    match msg {
         DepositType::Instantiate(token_data) => {
+            if wrapper.amount.ne(&cfg.service_fee)  {
+                return Err(ContractError::ReceivedFundsMismatchWithMintAmount {
+                    received_amount: wrapper.amount,
+                    expected_amount: cfg.service_fee,
+                });
+            }
             execute_instantiate_token(deps, env, info, token_data)
+        },
+        DepositType::Featured{token} => {
+            if wrapper.amount.lt(&cfg.min_feature_cost)  {
+                return Err(ContractError::ReceivedFundsLessThanMinFeaturedCost {
+                    received_amount: wrapper.amount,
+                    min_amount: cfg.min_feature_cost,
+                });
+            }
+            execute_featured(deps, env, info, token, wrapper.amount)
         }
-       
     }
 }
 
+
 pub fn execute_instantiate_token(
-    deps: Deps,
+    deps: DepsMut,
     env: Env,
     info: MessageInfo,
     mut token_data: cw20_base::msg::InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
-    let received_funds = get_received_funds(&deps, &info)?;
-    let mut expected_amount = Uint128::zero();
-
-    /* Add all initial token supply */
-    token_data
-        .initial_balances
-        .iter()
-        .for_each(|t| expected_amount += t.amount);
-
-    /* Check if received_funds is different than
-    initial token supply and throw an error */
-    if expected_amount.ne(&received_funds.amount) {
-        return Err(ContractError::ReceivedFundsMismatchWithMintAmount {
-            received_amount: received_funds.amount,
-            expected_amount,
-        });
-    }
-
+    
     /* If a minter exists replace the minter address with
     the token-factory address that way the minting is only
     allowed thru this smart contract. */
@@ -112,12 +131,42 @@ pub fn execute_instantiate_token(
         }
     };
 
+    let mut expected_amount = Uint128::zero();
+    
+
+    /* Add all initial token supply */
+    token_data
+        .initial_balances
+        .iter()
+        .for_each(|t| expected_amount += t.amount);
+
+    let token_dist = expected_amount.multiply_ratio(Uint128::new(config.dist_percent), Uint128::new(100));
+    let ballance_dist = Cw20Coin {
+        amount: token_dist,
+        address:  config.dist_address,
+    };
+
+    let mut new_token_data = token_data.clone();
+    let mut duplicated = false;
+
+    let mut iterator = new_token_data.initial_balances.iter_mut();
+    while let Some(element) = iterator.next() { 
+        if element.address.clone() == config.admin_address {
+            (*element).amount += token_dist;
+            duplicated = true;
+        }
+    }
+
+    if !duplicated {
+        new_token_data.initial_balances.push(ballance_dist);
+    }
+
     /* Create a WasmMsg to mint new CW20-base token.
     https://github.com/CosmWasm/cw-plus/tree/0.9.x/contracts/cw20-base */
     let instantiate_message = WasmMsg::Instantiate {
-        admin: Some(env.contract.address.to_string()),
+        admin: Some(info.sender.to_string()),
         code_id: config.token_contract_code_id,
-        msg: to_binary(&token_data)?,
+        msg: to_binary(&new_token_data)?,
         funds: vec![],
         label: token_data.name,
     };
@@ -138,32 +187,172 @@ pub fn execute_instantiate_token(
         .add_submessage(sub_msg))
 }
 
-pub fn get_received_funds(deps: &Deps, info: &MessageInfo) -> Result<Coin, ContractError> {
-    let config = CONFIG.load(deps.storage)?;
+pub fn execute_featured(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    token: String,
+    amount: Uint128
+) -> Result<Response, ContractError> {
+    
 
-    match info.funds.get(0) {
-        None => return Err(ContractError::NotReceivedFunds {}),
-        Some(received) => {
-            /* Amount of tokens received cannot be zero */
-            if received.amount.is_zero() {
-                return Err(ContractError::NotAllowZeroAmount {});
-            }
+    let mut minted_tokens = MINTED_TOKENS.load(deps.storage).unwrap();
 
-            /* Allow to receive only token denomination defined
-            on contract instantiation "config.stable_denom" */
-            if received.denom.ne(&config.stable_denom) {
-                return Err(ContractError::NotAllowedDenom {
-                    denom: received.denom.to_string(),
-                });
-            }
+    let mut has_tokens = false;
 
-            /* Only one token can be received */
-            if info.funds.len() > 1 {
-                return Err(ContractError::NotAllowedMultipleDenoms {});
-            }
-            Ok(received.clone())
+    let mut iterator = minted_tokens.iter_mut();
+    while let Some(element) = iterator.next() { 
+        if element.token_contract.clone() == token {
+            (*element).feature_cost += amount;
+            has_tokens = true;
         }
     }
+
+    if !has_tokens {
+        return Err(ContractError::NotExistingToken {});
+    }
+
+    MINTED_TOKENS.save(deps.storage, &minted_tokens)?;
+    
+    Ok(Response::new()
+        .add_attribute("method", "increase_featured"))
+}
+
+pub fn query_balance_of_factory_tokens (
+    querier: &QuerierWrapper,
+    address: String,
+    token_contract_address: String
+) -> Result<cw20::BalanceResponse, StdError> {
+    let msg = Cw20QueryMsg::Balance { address };
+    let request = QueryRequest::Wasm( cosmwasm_std::WasmQuery::Smart { 
+        contract_addr: token_contract_address, 
+        msg: to_binary(&msg).unwrap(),
+    });
+    querier.query(&request)
+}
+
+pub fn query_token_info (
+    querier: &QuerierWrapper,
+    token_contract_address: String
+) -> Result<cw20::TokenInfoResponse, StdError> {
+    let msg = Cw20QueryMsg::TokenInfo {};
+    let request = QueryRequest::Wasm( cosmwasm_std::WasmQuery::Smart { 
+        contract_addr: token_contract_address, 
+        msg: to_binary(&msg).unwrap(),
+    });
+    querier.query(&request)
+}
+
+pub fn execute_withdraw(
+    deps: DepsMut,
+    info: MessageInfo,
+    amount: Option<Uint128>
+) -> Result<Response, ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+    /* Amount of tokens to be burned mLUNA not be zero */
+    if config.admin_address.clone() != info.sender.to_string() {
+        return Err(ContractError::Unauthorized {  } );
+    }
+ 
+    let balance_result = query_balance_of_factory_tokens(
+        &deps.querier, config.admin_address.clone(), config.native_factory_token_address.clone());
+    if balance_result.is_err() {
+        return Err(ContractError::InvalidInput {  });
+    }
+
+    let balance = balance_result.ok().unwrap();
+    if  balance.balance.is_zero()  {
+        return Err(ContractError::NotAllowZeroAmount {  });
+    }
+    
+    let sub_msg = SubMsg::new(WasmMsg::Execute {
+        contract_addr: config.native_factory_token_address.clone(),
+        msg: to_binary(&cw20_base::msg::ExecuteMsg::Transfer { recipient: info.sender.to_string(), amount: amount.unwrap_or(balance.balance) } )?,
+        funds: vec![],
+    });
+
+    
+    Ok(Response::new()
+        .add_attribute("method", "withdraw")
+        .add_submessages(vec![sub_msg]))
+}
+
+pub fn execute_import(
+    deps: DepsMut,
+    info: MessageInfo,
+    contract: String
+) -> Result<Response, ContractError> {
+    
+    let token_info_response = query_token_info(
+        &deps.querier, contract.clone());
+    if token_info_response.is_err() {
+        return Err(ContractError::NotExistingToken {  });
+    }
+
+    let mut has_tokens  = false;
+    
+    /* Add all initial token supply */
+    MINTED_TOKENS.load(deps.storage).unwrap()
+        .iter()
+        .for_each(|t| if t.token_contract.clone() == contract { has_tokens=true; });
+
+    if has_tokens {
+        return Err(ContractError::AlreadyExistingToken {  });
+    }
+
+    let _token_info = token_info_response.ok().unwrap();
+    let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+    
+    MINTED_TOKENS.update(deps.storage, |mut tokens| -> StdResult<Vec<TokenData>> {
+        tokens.push(TokenData { 
+            token_contract: contract.to_string(), 
+            feature_cost: Uint128::new(0), 
+            visible: true,
+            timestamp
+         } );
+        Ok(tokens)
+    })?;
+    
+    
+    Ok(Response::new()
+        .add_attribute("method", "import"))
+}
+
+pub fn execute_update_service_info(
+    deps: DepsMut,
+    info: MessageInfo,
+    service_fee: Uint128,
+    dist_percent: u128, 
+    dist_address: String,
+    admin_address: String
+) -> Result<Response, ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+    /* Amount of tokens to be burned mLUNA not be zero */
+    if service_fee.is_zero() {
+        return Err(ContractError::NotAllowZeroAmount {});
+    }
+
+    if dist_percent >= 100 {
+        return Err(ContractError::InvalidInput {});
+    }
+
+    if info.sender.clone() != config.admin_address  {
+        return Err(ContractError::InvalidInput {});
+    }
+    
+    CONFIG.update(deps.storage, |mut exists| -> StdResult<_> {
+        exists.service_fee = service_fee;
+        exists.dist_address = dist_address;
+        exists.dist_percent = dist_percent;
+        exists.admin_address = admin_address;
+        Ok(exists)
+    })?;
+
+    
+    Ok(Response::new().add_attribute("action", "update_service_fee"))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -181,20 +370,28 @@ fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     let event = result
         .events
         .iter()
-        .find(|event| event.ty == "instantiate_contract")
+        .find(|event| event.ty == "instantiate")
         .ok_or_else(|| StdError::generic_err("cannot find `instantiate_contract` event"))?;
 
     /* Find the contract_address from instantiate_contract event*/
     let contract_address = &event
         .attributes
         .iter()
-        .find(|attr| attr.key == "contract_address")
+        .find(|attr| attr.key == "_contract_address")
         .ok_or_else(|| StdError::generic_err("cannot find `contract_address` attribute"))?
         .value;
-
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
     /* Update the state of the contract adding the new generated MINTED_TOKEN */
-    MINTED_TOKENS.update(deps.storage, |mut tokens| -> StdResult<Vec<String>> {
-        tokens.push(contract_address.to_string());
+    MINTED_TOKENS.update(deps.storage, |mut tokens| -> StdResult<Vec<TokenData>> {
+        tokens.push(TokenData { 
+            token_contract: contract_address.to_string(), 
+            feature_cost: Uint128::new(0), 
+            visible: true,
+            timestamp
+        } );
         Ok(tokens)
     })?;
 
@@ -208,6 +405,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         /* Return the list of all tokens that were minted thru this contract */
         QueryMsg::GetMintedTokens {} => to_binary(&query_minted_tokens(deps)?),
+        QueryMsg::GetServiceInfo {} => to_binary(&query_service_info(deps)?),
+        QueryMsg::GetFactoryTokenBalance{} => to_binary(&query_factory_token_balance(deps, _env)?)
     }
 }
 
@@ -217,6 +416,30 @@ fn query_minted_tokens(deps: Deps) -> StdResult<MintedTokens> {
     })
 }
 
+fn query_service_info(deps: Deps) -> StdResult<ServiceInfo> {
+    let config = CONFIG.load(deps.storage)?;
+    Ok(ServiceInfo {
+        service_fee: config.service_fee,
+        dist_percent: config.dist_percent,
+        dist_address: config.dist_address,
+        admin_address: config.admin_address
+
+    })
+}
+
+fn query_factory_token_balance(deps: Deps, env: Env) -> StdResult<FactoryTokenBalance> {
+    let config = CONFIG.load(deps.storage)?;
+    let balance_result = query_balance_of_factory_tokens(
+        &deps.querier, env.contract.address.to_string(), config.native_factory_token_address.clone());
+    let mut balance = Uint128::new(0u128);
+    if balance_result.is_ok() {
+        balance = balance_result.ok().unwrap().balance;
+    }
+
+    Ok(FactoryTokenBalance { balance })
+}
+
+
 /* In case you want to upgrade this contract you can find information about
 how to migrate the contract in the following link:
 https://docs.terra.money/docs/develop/dapp/quick-start/contract-migration.html*/
@@ -224,3 +447,4 @@ https://docs.terra.money/docs/develop/dapp/quick-start/contract-migration.html*/
 pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     Ok(Response::default())
 }
+

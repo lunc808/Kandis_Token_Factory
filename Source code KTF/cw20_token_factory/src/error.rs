@@ -15,10 +15,19 @@ pub enum ContractError {
     #[error("NotAllowZeroAmount")]
     NotAllowZeroAmount {},
 
-    #[error("NotAllowedDenom")]
-    NotAllowedDenom { 
-        denom: String
+    #[error("NotExistingToken")]
+    NotExistingToken { 
     },
+
+    #[error("AlreadyExistingToken")]
+    AlreadyExistingToken { 
+    },
+
+    #[error("InvalidInput")]
+    InvalidInput {},
+
+    #[error("Not Native Factory Token")]
+    UnacceptableToken {},
 
     #[error("NotAllowedMultipleDenoms")]
     NotAllowedMultipleDenoms {},
@@ -30,5 +39,11 @@ pub enum ContractError {
     ReceivedFundsMismatchWithMintAmount {
         received_amount: Uint128,
         expected_amount: Uint128
+    },
+
+    #[error("ReceivedFundsLessThanMinFeaturedCost")]
+    ReceivedFundsLessThanMinFeaturedCost {
+        received_amount: Uint128,
+        min_amount: Uint128
     },
 }
