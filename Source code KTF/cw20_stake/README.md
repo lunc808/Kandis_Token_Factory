@@ -1,4 +1,4 @@
-Juno staking Envirnment Setup
+Staking Environment Setup
 
 sudo apt-get update && sudo apt upgrade -y
 sudo apt-get install make build-essential gcc git jq chrony -y
