@@ -13,6 +13,8 @@ export interface HeaderData {
     total_supply: string;
     decimals: string;
     description: string;
+    score: number;
+    action: string;
 }
 
 export interface HeadCell {
@@ -47,141 +49,151 @@ function TokensTableHeader(props: TokensTableHeaderProps) {
         <TableHead className="TokensTableHeader">
             <TableRow>
                 {props.headCells.map((headCell) => {
+                    const showFieldInMobile = headCell.id == 'score' || headCell.id == 'symbol' || headCell.id == 'name'|| headCell.id == 'action';
+                    return (
+                        ((showFieldInMobile && isXSmall) || (isSmall)) && 
+                        <TableCell
+                            className={headCell.id}
+                            key={headCell.id}
+                            align={headCell.numeric ? 'center' : 'left'}>
+                            {headCell.label}
+                        </TableCell>
+                    );
+                    // switch (headCell.id) {
+                    //     // case 'logo':
+                    //     //     return isXSmall && (
+                    //     //         <TableCell
+                    //     //             className={headCell.id}
+                    //     //             key={headCell.id}
+                    //     //             align={headCell.numeric ? 'center' : 'left'}
+                    //     //             sortDirection={props.orderBy === headCell.id ? props.order : false}
+                                    
+                    //     //         >
+                    //     //             <TableSortLabel
+                    //     //                 active={props.orderBy === headCell.id}
+                    //     //                 direction={props.orderBy === headCell.id ? props.order : 'asc'}
+                    //     //                 onClick={createSortHandler(headCell.id)}>
+                    //     //                 {headCell.label}
+                    //     //                 {props.orderBy === headCell.id ? (
+                    //     //                     <Box component="span" sx={visuallyHidden}>
+                    //     //                         {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                    //     //                     </Box>
+                    //     //                 ) : null}
+                    //     //             </TableSortLabel>
+                    //     //         </TableCell>
+                    //     //     );
+                    //     // case 'symbol':
+                    //     //     return isXSmall && (
+                    //     //         <TableCell
+                    //     //             className={headCell.id}
+                    //     //             key={headCell.id}
+                    //     //             align={headCell.numeric ? 'center' : 'left'}
+                    //     //             sortDirection={props.orderBy === headCell.id ? props.order : false}
+                                    
+                    //     //         >
+                    //     //             <TableSortLabel
+                    //     //                 active={props.orderBy === headCell.id}
+                    //     //                 direction={props.orderBy === headCell.id ? props.order : 'asc'}
+                    //     //                 onClick={createSortHandler(headCell.id)}>
+                    //     //                 {headCell.label}
+                    //     //                 {props.orderBy === headCell.id ? (
+                    //     //                     <Box component="span" sx={visuallyHidden}>
+                    //     //                         {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                    //     //                     </Box>
+                    //     //                 ) : null}
+                    //     //             </TableSortLabel>
+                    //     //         </TableCell>
+                    //     //     );
+                    //     // case 'name':
+                    //     //     return isLarge && (
+                    //     //         <TableCell
+                    //     //             className={headCell.id}
+                    //     //             key={headCell.id}
+                    //     //             align={headCell.numeric ? 'center' : 'left'}
+                    //     //             sortDirection={props.orderBy === headCell.id ? props.order : false}
+                                    
+                    //     //         >
+                    //     //             <TableSortLabel
+                    //     //                 active={props.orderBy === headCell.id}
+                    //     //                 direction={props.orderBy === headCell.id ? props.order : 'asc'}
+                    //     //                 onClick={createSortHandler(headCell.id)}>
+                    //     //                 {headCell.label}
+                    //     //                 {props.orderBy === headCell.id ? (
+                    //     //                     <Box component="span" sx={visuallyHidden}>
+                    //     //                         {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                    //     //                     </Box>
+                    //     //                 ) : null}
+                    //     //             </TableSortLabel>
+                    //     //         </TableCell>
+                    //     //     );
 
-                    switch (headCell.id) {
-                        case 'logo':
-                            return isXSmall && (
-                                <TableCell
-                                    className={headCell.id}
-                                    key={headCell.id}
-                                    align={headCell.numeric ? 'center' : 'left'}
-                                    sortDirection={props.orderBy === headCell.id ? props.order : false}
+                    //     // case 'total_supply':
+                    //     //     return isXSmall && (
+                    //     //         <TableCell
+                    //     //             className={headCell.id}
+                    //     //             key={headCell.id}
+                    //     //             align={headCell.numeric ? 'center' : 'left'}
+                    //     //             sortDirection={props.orderBy === headCell.id ? props.order : false}
                                     
-                                >
-                                    <TableSortLabel
-                                        active={props.orderBy === headCell.id}
-                                        direction={props.orderBy === headCell.id ? props.order : 'asc'}
-                                        onClick={createSortHandler(headCell.id)}>
-                                        {headCell.label}
-                                        {props.orderBy === headCell.id ? (
-                                            <Box component="span" sx={visuallyHidden}>
-                                                {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                            </Box>
-                                        ) : null}
-                                    </TableSortLabel>
-                                </TableCell>
-                            );
-                        case 'symbol':
-                            return isXSmall && (
-                                <TableCell
-                                    className={headCell.id}
-                                    key={headCell.id}
-                                    align={headCell.numeric ? 'center' : 'left'}
-                                    sortDirection={props.orderBy === headCell.id ? props.order : false}
+                    //     //         >
+                    //     //             <TableSortLabel
+                    //     //                 active={props.orderBy === headCell.id}
+                    //     //                 direction={props.orderBy === headCell.id ? props.order : 'asc'}
+                    //     //                 onClick={createSortHandler(headCell.id)}>
+                    //     //                 {headCell.label}
+                    //     //                 {props.orderBy === headCell.id ? (
+                    //     //                     <Box component="span" sx={visuallyHidden}>
+                    //     //                         {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                    //     //                     </Box>
+                    //     //                 ) : null}
+                    //     //             </TableSortLabel>
+                    //     //         </TableCell>
+                    //     //     );
+                    //     // case 'description':
+                    //     //     return isXSmall && (
+                    //     //         <TableCell
+                    //     //             className={headCell.id}
+                    //     //             key={headCell.id}
+                    //     //             align={headCell.numeric ? 'center' : 'left'}
+                    //     //             sortDirection={props.orderBy === headCell.id ? props.order : false}
                                     
-                                >
-                                    <TableSortLabel
-                                        active={props.orderBy === headCell.id}
-                                        direction={props.orderBy === headCell.id ? props.order : 'asc'}
-                                        onClick={createSortHandler(headCell.id)}>
-                                        {headCell.label}
-                                        {props.orderBy === headCell.id ? (
-                                            <Box component="span" sx={visuallyHidden}>
-                                                {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                            </Box>
-                                        ) : null}
-                                    </TableSortLabel>
-                                </TableCell>
-                            );
-                        case 'name':
-                            return isLarge && (
-                                <TableCell
-                                    className={headCell.id}
-                                    key={headCell.id}
-                                    align={headCell.numeric ? 'center' : 'left'}
-                                    sortDirection={props.orderBy === headCell.id ? props.order : false}
-                                    
-                                >
-                                    <TableSortLabel
-                                        active={props.orderBy === headCell.id}
-                                        direction={props.orderBy === headCell.id ? props.order : 'asc'}
-                                        onClick={createSortHandler(headCell.id)}>
-                                        {headCell.label}
-                                        {props.orderBy === headCell.id ? (
-                                            <Box component="span" sx={visuallyHidden}>
-                                                {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                            </Box>
-                                        ) : null}
-                                    </TableSortLabel>
-                                </TableCell>
-                            );
-
-                        case 'total_supply':
-                            return isXSmall && (
-                                <TableCell
-                                    className={headCell.id}
-                                    key={headCell.id}
-                                    align={headCell.numeric ? 'center' : 'left'}
-                                    sortDirection={props.orderBy === headCell.id ? props.order : false}
-                                    
-                                >
-                                    <TableSortLabel
-                                        active={props.orderBy === headCell.id}
-                                        direction={props.orderBy === headCell.id ? props.order : 'asc'}
-                                        onClick={createSortHandler(headCell.id)}>
-                                        {headCell.label}
-                                        {props.orderBy === headCell.id ? (
-                                            <Box component="span" sx={visuallyHidden}>
-                                                {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                            </Box>
-                                        ) : null}
-                                    </TableSortLabel>
-                                </TableCell>
-                            );
-                        case 'description':
-                            return isXSmall && (
-                                <TableCell
-                                    className={headCell.id}
-                                    key={headCell.id}
-                                    align={headCell.numeric ? 'center' : 'left'}
-                                    sortDirection={props.orderBy === headCell.id ? props.order : false}
-                                    
-                                >
-                                    <TableSortLabel
-                                        active={props.orderBy === headCell.id}
-                                        direction={props.orderBy === headCell.id ? props.order : 'asc'}
-                                        onClick={createSortHandler(headCell.id)}>
-                                        {headCell.label}
-                                        {props.orderBy === headCell.id ? (
-                                            <Box component="span" sx={visuallyHidden}>
-                                                {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                            </Box>
-                                        ) : null}
-                                    </TableSortLabel>
-                                </TableCell>
-                            );
-                        default: return (
-                            <TableCell
-                                className={headCell.id}
-                                key={headCell.id}
-                                align={headCell.numeric ? 'center' : 'left'}
-                                sortDirection={props.orderBy === headCell.id ? props.order : false}
+                    //     //         >
+                    //     //             <TableSortLabel
+                    //     //                 active={props.orderBy === headCell.id}
+                    //     //                 direction={props.orderBy === headCell.id ? props.order : 'asc'}
+                    //     //                 onClick={createSortHandler(headCell.id)}>
+                    //     //                 {headCell.label}
+                    //     //                 {props.orderBy === headCell.id ? (
+                    //     //                     <Box component="span" sx={visuallyHidden}>
+                    //     //                         {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                    //     //                     </Box>
+                    //     //                 ) : null}
+                    //     //             </TableSortLabel>
+                    //     //         </TableCell>
+                    //     //     );
+                    //     default: return (
+                    //         <TableCell
+                    //             className={headCell.id}
+                    //             key={headCell.id}
+                    //             align={headCell.numeric ? 'center' : 'left'}
+                    //             // sortDirection={props.orderBy === headCell.id ? props.order : false}
                                 
-                            >
-                                <TableSortLabel
-                                    active={props.orderBy === headCell.id}
-                                    direction={props.orderBy === headCell.id ? props.order : 'asc'}
-                                    onClick={createSortHandler(headCell.id)}>
-                                    {headCell.label}
-                                    {props.orderBy === headCell.id ? (
-                                        <Box component="span" sx={visuallyHidden}>
-                                            {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                        </Box>
-                                    ) : null}
-                                </TableSortLabel>
-                            </TableCell>
-                        );
-                    }
+                    //         >
+                    //             {headCell.label}
+                    //             {/* <TableSortLabel
+                    //                 active={props.orderBy === headCell.id}
+                    //                 direction={props.orderBy === headCell.id ? props.order : 'asc'}
+                    //                 onClick={createSortHandler(headCell.id)}>
+                    //                 {headCell.label}
+                    //                 {props.orderBy === headCell.id ? (
+                    //                     <Box component="span" sx={visuallyHidden}>
+                    //                         {props.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                    //                     </Box>
+                    //                 ) : null}
+                    //             </TableSortLabel> */}
+                    //         </TableCell>
+                    //     );
+                    // }
 
                 })}
             </TableRow>

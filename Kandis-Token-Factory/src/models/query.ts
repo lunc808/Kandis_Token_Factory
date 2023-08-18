@@ -1,7 +1,18 @@
 import { Address } from "./address"
 
 export interface MintedTokensResponse {
-    minted_tokens: Array<Address>
+    minted_tokens: Array<TokenInfo>,
+    max_of_issuer: string,
+    max_of_member: string
+}
+
+export interface TokenInfo {
+    token_contract: string,
+    token_issuer: string,
+    visible: boolean,
+    is_imported: boolean,
+    amount_of_issuer: string,
+    amount_of_member: string
 }
 
 export interface ServiceInfoResponse {
@@ -38,6 +49,17 @@ export interface AllAccountsResponse {
     accounts: Array<Address>
 }
 
+export interface TokenRanking {
+    token: string,
+    amount_of_issuer: string,
+    name?: string | null | undefined,
+    symbol?: string | null | undefined
+}
+
+export interface LeaderBoardResponse {
+    tokens: Array<TokenRanking>
+}
+
 export interface TokenData {
     address?: Address,
     name?: string,
@@ -50,6 +72,24 @@ export interface TokenData {
     logo?: { url?: string},
     project?: string,
 }
+
+export interface TokenFeature {
+    token_contract: string,
+    token_issuer: string,
+    visible: boolean,
+    is_imported: boolean,
+    amount_of_issuer: string,
+    amount_of_member: string,
+    max_of_issuer: string,
+    max_of_member: string
+}
+
+export interface TokenOverallInfo {
+    token_data?: TokenData,
+    token_feature?: TokenFeature
+}
+
+
 
 export interface TokenHolder {
     address: Address, 

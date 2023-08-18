@@ -1,17 +1,22 @@
 {
   "classic": {
     "cw20-factory-token": {
-      "codeId": "7706",
+      "codeId": "7645",
       "contractAddresses": {
         "default": "terra132xampf3efc4ct8952jy9u93cqvrhmfr46r3j62zvl9486d27mgs55kfhf"
       }
     },
-    "token-factory": {
-      "codeId": "7805",
+    "lp-factory-token": {
+      "codeId": "7645",
       "contractAddresses": {
-        "default": "terra1sekcd4jgrxzk4pnne6e577fz9lg6ywch7t69eqxnms882nu2w2gqxf74kg"
+        "default": "terra1wl8w2adn7dmdp74xrmfnlvhpy4dd73guuv3elgfz25x0qdrf62rskh2ej4"
+      }
+    },
+    "token-factory": {
+      "codeId": "7647",
+      "contractAddresses": {
+        "default": "terra13fy6uaf9ecpaqhrhkhvurkv024cwcre7ct8h22d4s2sft5sxmurqhj4f8r"
       }
     }
   }
 }
-

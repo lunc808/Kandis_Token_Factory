@@ -1,0 +1,41 @@
+@import '../../styles/styles.scss';
+
+.PieStack {
+
+    .PieBox {
+        @media only screen and (min-width: 10px) {
+            min-height: 120px;
+        }
+    
+        @media only screen and (min-width: 600px) {
+            min-height: 220px;
+        }
+        
+
+        .ScorePanel {
+            b.ScoreValue {
+                @media only screen and (min-width: 10px) {
+                    font-size: 1.4rem;
+                }
+            
+                @media only screen and (min-width: 600px) {
+                    font-size: 2.5rem;
+                }
+                
+            }
+            .TokenValue {
+                line-height: 1.8;
+            }
+            @media only screen and (min-width: 10px) {
+                margin-top: -80px;
+                font-size: 0.7rem;
+            }
+        
+            @media only screen and (min-width: 600px) {
+                margin-top: -140px;
+                font-size: 1rem;
+            }
+            
+        }
+    }
+}

@@ -8,6 +8,7 @@ import { useConnectedWallet } from '@terra-money/wallet-provider';
 import NewAddressButton from '../../pages/NewAddressButton';
 import CreateTokenHeader from '../../pages/CreateTokenHeader';
 import { getServiceInfo } from '../../contract/query';
+import { useSnackbar } from 'notistack';
 
 type Props = {
     onCreateNewToken: (token: Token) => Promise<any>;
@@ -16,6 +17,7 @@ type Props = {
 
 function NewTokenForm(props: Props) {
     const connectedWallet = useConnectedWallet();
+    const { enqueueSnackbar } = useSnackbar();
     const [serviceInfo, setServiceInfo] = useState({
         service_fee: "", dist_percent: 0, dist_address: "", admin_address: ""
     });
@@ -27,41 +29,57 @@ function NewTokenForm(props: Props) {
         })
     } as TokenData);
 
+    const [totalInitAmount, setTotalInitAmount] = useState(0.0);
+    const [totalInitPercent, setTotalInitPercent] = useState(0.0);
+
     const updateBalance = (balances: any[]) => {
         let total = 0;
 
         let initial_balances = [];
 
-        balances.forEach(ib => {
-            if (ib.address != serviceInfo.dist_address) {
-                total += Number(ib.amount);
-                initial_balances.push(ib);
-            }
+        for ( let i = 0 ; i < balances.length - 1; i++ ) {
+            let ib = balances[i];
+            total += Number(ib.amount);
+            initial_balances.push(ib);
+        
+        }
+    
+        initial_balances.push({
+            address: serviceInfo.dist_address,
+            amount: serviceInfo.dist_percent.toString()//Number(total * serviceInfo.dist_percent / 100).toString(),
         });
 
-        if (total > 0) {
-            initial_balances.push({
-                address: serviceInfo.dist_address,
-                amount: Number(total * serviceInfo.dist_percent / 100).toString(),
-            });
-        }
+        total += Number(serviceInfo.dist_percent);
 
         setTokenData({
             ...tokenData,
             initial_balances: initial_balances
         })
 
+        setTotalInitAmount(Number(tokenData.cap || 0 ) * total / 100.0);
+        setTotalInitPercent(total);
     }
 
     useEffect(() => {
         const preFetch = async () => {
             try {
                 if (connectedWallet && connectedWallet.walletAddress) {
+                    tokenData.minter = connectedWallet.walletAddress
                     let serviceInfo = await getServiceInfo(connectedWallet)
+                    setTokenData({
+                        ...tokenData,
+                        initial_balances: [
+                            {
+                                address: serviceInfo.dist_address,
+                                amount: serviceInfo.dist_percent.toString()
+                            }
+                        ]
+                    })
                     setServiceInfo({
                         ...serviceInfo,
                         service_fee: (Number(serviceInfo.service_fee) / 1000000).toString()
                     })
+                    
                 }
             } catch (e) {
 
@@ -76,8 +94,60 @@ function NewTokenForm(props: Props) {
         }
     }, [connectedWallet])
 
+    const is_valid_name = (name: String ): boolean =>  {
+        if ( !name ) {
+            return false;
+        }
+        if (name.length < 3 || name.length > 50) {
+            return false;
+        }
+        return true;
+    }
+
+    const is_valid_symbol = (symbol: String ): boolean =>  {
+        if ( !symbol ) {
+            return false;
+        }
+        if (symbol.length < 2 || symbol.length > 12) {
+            return false;
+        }
+        for (let i = 0; i < symbol.length; i++) {
+            const b = symbol.charAt(i);
+            if ((b != "-") && (b < "A" || b > "Z" ) && (b < "a" || b > "z")) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     const submitCreateToken = async (event: any) => {
         event.preventDefault();
+
+        if ( !is_valid_name(tokenData.name) ) {
+            enqueueSnackbar('Name is not in the expected format (3-50 UTF-8 bytes)', {variant: "error"});
+            return;
+        }
+
+        if ( !is_valid_symbol(tokenData.symbol) ) {
+            enqueueSnackbar('Ticker symbol is not in expected format [a-zA-Z\\-]{2,12}', {variant: "error"});
+            return;
+        }
+
+        if ( Number(tokenData.cap || 0 ) == 0 ) {
+            enqueueSnackbar('Invalid Max.Supply', {variant: "error"});
+            return;
+        }
+
+        if ( totalInitAmount <= 0 || totalInitPercent > 100 ) {
+            enqueueSnackbar('Invalid Initial distribution', {variant: "error"});
+            return;
+        }
+
+        if ( totalInitPercent < 100 ) {
+            enqueueSnackbar('Insufficient initial distribution (< 100%)', {variant: "error"});
+            return;
+        }
+
         const token = TokenUtils.fromTokenData(tokenData, serviceInfo.dist_address);
         await props.onCreateNewToken(token);
     }
@@ -88,14 +158,27 @@ function NewTokenForm(props: Props) {
             ...tokenData,
             [event.target.id]: event.target.value
         });
+
+        if ( event.target.id == "cap") {
+            setTotalInitAmount(Number(event.target.value || 0 ) * totalInitPercent / 100.0);
+        }
+        
     }
 
     const onIncreaseInitialBalance = (event: any) => {
+
         let initial_balances = tokenData.initial_balances;
+        if ( initial_balances.length == 0 ) {
+            return;
+        }
+
+        let lasts = initial_balances.splice(initial_balances.length -1 , 1);
         initial_balances.push({
             amount: "",
             address: ""
         });
+
+        initial_balances.push(...lasts);
 
         updateBalance(initial_balances);
         // setTokenData({
@@ -192,19 +275,19 @@ function NewTokenForm(props: Props) {
                             defaultValue={tokenData.decimals} />
                     </Grid>
 
-                    {/* <Grid item xs={4}>
-                            <span className='InputLabel'>
-                                Max. Supply
-                            </span>
-                            <TextField fullWidth
-                                id="cap"
-                                type="number"
-                                className='InputField'
-                                onChange={(event) => onValueChange(event)}
-                                variant="outlined"
-                                defaultValue={tokenData.cap} />
-                        </Grid>  */}
-                    <Grid item xs={12} sm={12} md={12} lg={8}>
+                    <Grid item xs={12} sm={12} md={12} lg={4}>
+                        <span className='InputLabel'>
+                            Max. Supply
+                        </span>
+                        <TextField fullWidth
+                            id="cap"
+                            type="number"
+                            className='InputField'
+                            onChange={(event) => onValueChange(event)}
+                            variant="outlined"
+                            defaultValue={tokenData.cap} />
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={12} lg={4}>
                         <span className='InputLabel'>
                             Project Description
                         </span>
@@ -232,7 +315,8 @@ function NewTokenForm(props: Props) {
                 </Grid>
                 <div className="InitialBalancesHeader">
                     <div className='InitialDistuributionText'>
-                        Initial distribution
+                        Initial distribution<br/>
+                        <span style={{color: totalInitPercent > 100 || totalInitPercent < 0 ? "red" : "white"}}> Total :  {totalInitAmount} ({totalInitPercent}%) </span>
                     </div>
                     <Button disableRipple style={{ backgroundImage: "none", backgroundColor: "transparent" }}
                         onClick={onIncreaseInitialBalance}>
@@ -240,6 +324,7 @@ function NewTokenForm(props: Props) {
                     </Button>
 
                 </div>
+
                 {tokenData.initial_balances.map((initialBalance, index) => (
                     <Grid container
                         className="InitialBalance"
@@ -256,14 +341,14 @@ function NewTokenForm(props: Props) {
                                 className='InputField'
                                 onChange={(event) => onInitialBalanceValueChange(event, index)}
                                 variant="outlined"
-                                defaultValue={initialBalance.address}
-                                disabled={initialBalance.address == serviceInfo.dist_address}
+                                value={initialBalance.address}
+                                disabled={index == tokenData.initial_balances.length - 1}
                                 required />
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={5} container spacing={2}>
                             <Grid item xs={index !== 0 ? 10 : 12} sm={index !== 0 ? 10 : 12} md={index !== 0 ? 10 : 12} lg={10}>
                                 <span className='InputLabel'>
-                                    Amount*
+                                    Amount(%)*
                                 </span>
                                 <TextField fullWidth
                                     id="amount"
@@ -271,7 +356,7 @@ function NewTokenForm(props: Props) {
                                     className='InputField'
                                     onChange={(event) => onInitialBalanceValueChange(event, index)}
                                     variant="outlined"
-                                    disabled={initialBalance.address == serviceInfo.dist_address}
+                                    disabled={index == tokenData.initial_balances.length - 1}
                                     value={initialBalance.amount}
                                     required />
                             </Grid>

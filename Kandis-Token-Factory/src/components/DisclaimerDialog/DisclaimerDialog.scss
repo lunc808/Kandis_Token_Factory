@@ -1,0 +1,73 @@
+@import '../../styles/styles.scss';
+
+.DisclaimerDialog {
+    position: relative;
+
+
+    .MuiDialogTitle-root {
+        background-color: $yellow-color;
+        color: black;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    
+    .MuiDialogContent-root
+    {
+        @media only screen and (min-width: 10px) {
+            font-size: 12px !important;
+        }
+
+        @media only screen and (min-width: 600px) {
+            font-size: 14px !important;
+        }
+    
+    
+        padding: 20px 32px !important;
+        color: #CCC;
+        line-height: 1.4em;
+        text-align: center;
+
+        .header {
+            margin-top: 0.8em;
+        }
+
+        .MuiButton-root {
+            margin-top: 1em;
+            background-color: $yellow-color;
+            color: black;
+        }
+
+        .MuiButton-root:hover {
+            background-color: #999933;
+        }
+
+        
+    }
+
+    .AgreeCheck {
+        font-size: 0.9em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.4em;
+        margin-top: 2em;
+
+        a {
+            cursor: pointer;
+        }
+
+    }
+
+
+    .ButtonWrapper {
+        display: flex;
+        justify-content: end;
+    }
+
+    button {
+        min-width: 164px;
+        
+    }
+    
+}

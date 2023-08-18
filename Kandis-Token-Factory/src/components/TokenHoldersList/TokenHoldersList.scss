@@ -8,7 +8,7 @@
     
     
     .AccountBalanceRow {
-        height: 100px;
+        // height: 100px;
         transition: background-color 0.25s;
         
     }
@@ -16,5 +16,9 @@
     .TokenPagination {
         min-height: 64px;
         overflow: visible;
+    }
+
+    .MuiTableCell-root {
+        letter-spacing: 0em;
     }
 }

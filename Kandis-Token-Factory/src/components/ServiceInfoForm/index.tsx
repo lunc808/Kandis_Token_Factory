@@ -85,40 +85,9 @@ function ServiceInfoForm(props: Props) {
             />
             <CardContent className="CardContent">
                 <Grid container
-                    spacing={6}
+                    spacing={4}
                     marginBottom="2em">
-                    <Grid item xs={12}>
-                        <TextField fullWidth
-                            id="service_fee"
-                            type="number"
-                            label="Service Fee (Tokens)"
-                            onChange={(event) => onValueChange(event)}
-                            required
-                            variant="standard"
-                            value={serviceInfo.service_fee} />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField fullWidth
-                            id="dist_percent"
-                            type="number"
-                            label="Distribution Percent"
-                            onChange={(event) => onValueChange(event)}
-                            required
-                            variant="standard"
-                            value={serviceInfo.dist_percent} />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField fullWidth
-                            id="dist_address"
-                            type="text"
-                            label="Distribution Address"
-                            onChange={(event) => onValueChange(event)}
-                            required
-                            variant="standard"
-                            value={serviceInfo.dist_address} />
-                    </Grid>
-
-                    <Grid item xs={12}>
+                    <Grid item xs={8}>
                         <TextField fullWidth
                             id="admin_address"
                             type="text"
@@ -128,6 +97,39 @@ function ServiceInfoForm(props: Props) {
                             variant="standard"
                             value={serviceInfo.admin_address} />
                     </Grid>
+                    <Grid item xs={4}>
+                        <TextField fullWidth
+                            id="service_fee"
+                            type="number"
+                            label="Service Fee (Tokens)"
+                            onChange={(event) => onValueChange(event)}
+                            required
+                            variant="standard"
+                            value={serviceInfo.service_fee} />
+                    </Grid>
+                    <Grid item xs={8}>
+                        <TextField fullWidth
+                            id="dist_address"
+                            type="text"
+                            label="Distribution Address"
+                            onChange={(event) => onValueChange(event)}
+                            required
+                            variant="standard"
+                            value={serviceInfo.dist_address} />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField fullWidth
+                            id="dist_percent"
+                            type="number"
+                            label="Distribution Percent"
+                            onChange={(event) => onValueChange(event)}
+                            required
+                            variant="standard"
+                            value={serviceInfo.dist_percent} />
+                    </Grid>
+                    
+
+                    
                 </Grid>
                 
                 

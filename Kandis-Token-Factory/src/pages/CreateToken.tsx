@@ -38,7 +38,7 @@ function CreateToken() {
     setLoading(true);
     try {
 
-      const walletBalance = await query.getAccountBalance(tokenAddress(), connectedWallet.walletAddress, connectedWallet);
+      const walletBalance = await query.getAccountBalance(tokenAddress(), connectedWallet.walletAddress);
       const serviceFee = Number((await query.getServiceInfo(connectedWallet)).service_fee);
 
       if ( walletBalance < serviceFee ) {
@@ -66,7 +66,7 @@ function CreateToken() {
 
   return (
     <div className="Tokens">
-      {loading && <Loader />}
+      {/* {loading && <Loader />} */}
       <NewTokenForm onCreateNewToken={onCreateNewToken} tokens={tokens}/>
     </div>
   )

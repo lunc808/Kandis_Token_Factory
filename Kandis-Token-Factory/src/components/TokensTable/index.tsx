@@ -1,19 +1,28 @@
 import "./TokensTable.scss";
 import { useState } from 'react'
-import { TokenData } from '../../models/query';
+import { TokenData, TokenOverallInfo } from '../../models/query';
 import { Paper, Table, TableBody, TableCell, TableContainer, TablePagination, TableRow, useTheme, useMediaQuery } from '@mui/material';
 import { Address } from "../../models/address";
 import TokensTableHeader, { Order, HeaderData, HeadCell } from "./../TokensTableHeader";
 import Loader from "../Loader";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useSnackbar } from 'notistack';
+import { CheckBox, CheckBoxOutlineBlank, FeaturedPlayList, FeaturedPlayListOutlined, Scoreboard } from "@mui/icons-material";
+import { TokenUtils } from "../../models/token";
 
+export const getElipsisedAddr = (address: string) => {
+    const length = address.length;
+    return address.substring(0, 10) + "..." + address.substring(length - 6, length)
+}
 
 
 type Props = {
-    tokens: Array<TokenData>,
+    tokens: Array<TokenOverallInfo>,
     loading: boolean,
+    fullpage?:boolean,
+    isAdmin?: boolean,
     onRowClick: (id: Address) => void;
+    onRowFeatured?: (id: Address) => void;
 }
 
 const headCells: Array<HeadCell> = [
@@ -21,6 +30,14 @@ const headCells: Array<HeadCell> = [
         id: 'logo',
         disablePadding: true,
         label: ''
+    },
+    
+    {
+        id: 'score',
+        disablePadding: false,
+        
+        numeric: true,
+        label: 'Score'
     },
     {
         id: 'symbol',
@@ -47,7 +64,7 @@ const headCells: Array<HeadCell> = [
 
 function TokensTable(props: Props) {
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(props.fullpage ? 1000 : 10);
     const [order, setOrder] = useState<Order>('asc');
     const [orderBy, setOrderBy] = useState<keyof HeaderData>("symbol");
     const { enqueueSnackbar } = useSnackbar();
@@ -83,6 +100,15 @@ function TokensTable(props: Props) {
             : (a, b) => -descendingComparator(a, b, orderBy);
     }
 
+    const getRankingComparator = (
+        a: TokenOverallInfo,
+        b: TokenOverallInfo,
+    ):number => {
+        const scoreA = a.token_feature ? TokenUtils.getTotalScore(a.token_feature) : 0;
+        const scoreB = b.token_feature ? TokenUtils.getTotalScore(b.token_feature) : 0;
+        return scoreB - scoreA;
+    }
+
 
     const handleRequestSort = (
         _event: React.MouseEvent<unknown>,
@@ -105,12 +131,10 @@ function TokensTable(props: Props) {
         return stabilizedThis.map((el) => el[0]);
     }
 
-    const getElipsisedAddr = (address: string) => {
-        const length = address.length;
-        return address.substring(0, 10) + "..." + address.substring(length - 10, length)
-    }
+    
 
-    const onTokenClick = (token: any) => () => props.onRowClick(token.address as any)
+    const onTokenClick = (token: any) => () => props.onRowClick(token.token_data?.address as any)
+    const onRowFeatured = (token: any) => () => props.onRowFeatured && props.onRowFeatured(token.token_data?.address as any)
 
     const Theme = useTheme();
 
@@ -120,50 +144,73 @@ function TokensTable(props: Props) {
     const isLarge = useMediaQuery(Theme.breakpoints.up('lg'));
     const isXLarge = useMediaQuery(Theme.breakpoints.up('xl'));
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const getActionCell = (token:TokenOverallInfo) => {
+        if ( props.isAdmin ) {
+            return token.token_feature?.visible ? <CheckBox/> : <CheckBoxOutlineBlank/>;
+        } else {
+            return Number(token.token_feature?.amount_of_issuer || 0) > 0  && <FeaturedPlayListOutlined/>
+        }
+    }
 
     return (
         <TableContainer className="TokensTable"
-            component={Paper}>
+            component={Paper}
+            style={{ flexGrow: props.fullpage ? "0" : "1", paddingBottom: props.fullpage ? "1rem" : "0"}}>
 
-            {props.loading && <Loader />}
-            <Table style={{ marginBottom: "auto", backgroundColor: "transparent" }}>
+            {!props.fullpage && props.loading && <Loader />}
+            <Table style={{ marginBottom: props.fullpage ? "0px" : "auto", backgroundColor: "transparent" }}>
                 <TokensTableHeader
                     order={order}
                     orderBy={orderBy}
                     onRequestSort={handleRequestSort}
-                    headCells={headCells} />
+                    headCells={props.fullpage || props.isAdmin ?  [...headCells, {
+                        id: 'action',
+                        disablePadding: false,
+                        label: props.isAdmin ? 'Visible' : 'Featured',
+                    },] : headCells} />
                 <TableBody>
-                    {stableSort((props as any).tokens, getComparator(order, orderBy))
+                    {stableSort((props as any).tokens, getRankingComparator)
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((token, index) => (
                             <TableRow className="TokenRow"
                                 key={index}
                             >
-                                {isXSmall && <TableCell  style={{ "width": "50px" }} onClick={onTokenClick(token)}>
-                                    {(token.logo as any)?.url &&
-                                        <img src={((token.logo as any)?.url)}
+                                {isSmall && <TableCell  style={{ "width": "50px" }} onClick={onTokenClick(token)}>
+                                    {(token.token_data?.logo as any)?.url &&
+                                        <img src={((token.token_data?.logo as any)?.url)}
                                             alt=""
                                             className="image-size"/>
                                     }
 
                                 </TableCell>}
-                                {isXSmall && <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token)} sx={{fontSize: 12}}>{token.symbol}</TableCell>}
-                                {isLarge && <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token)} >{token.name}</TableCell>}
-                                {isXSmall && <TableCell style={{ "textAlign": "center" }} onClick={onTokenClick(token)} >{token.total_supply &&
-                                    <span>{(Number(token.total_supply) / (10 ** Number(token.decimals)))}</span>
+                                {isXSmall && <TableCell style={{ "width": "100px","textAlign": "center" }} onClick={onTokenClick(token)} sx={{fontSize: 12}}>
+                                    {TokenUtils.getBalanceString(TokenUtils.getTotalScore(token.token_feature),0) }
+                                </TableCell>}
+                                {isXSmall && <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token)} sx={{fontSize: 12}}>
+                                    {token.token_data?.symbol}
+                                </TableCell>}
+                                {isXSmall && <TableCell style={{ "width": "100px" }} onClick={onTokenClick(token)} >
+                                    {token.token_data?.name}
+                                </TableCell>}
+                                {isSmall && <TableCell style={{ "textAlign": "center" }} onClick={onTokenClick(token)} >{token.token_data?.total_supply &&
+                                    <span>{TokenUtils.getBalanceString(token.token_data?.total_supply, token.token_data?.decimals)}</span>
                                 }</TableCell>}
-                                {isXSmall && <TableCell className="DescriptionTableCell" onClick={(e) => {
+                                {isSmall && <TableCell className="DescriptionTableCell" onClick={(e) => {
                                     e.preventDefault();
-                                    navigator.clipboard.writeText(token.address as string);
+                                    navigator.clipboard.writeText(token.token_data?.address as string);
                                     enqueueSnackbar("Copied address", { variant: "info" });
                                 }} >
-                                    <div>{isXLarge && <span>{getElipsisedAddr(token.address as string)} </span>}
+                                    <div>{isLarge && <span>{getElipsisedAddr(token.token_data?.address as string)} </span>}
                                         <ContentCopyIcon style={{ "width": "18px", "height": "18px" }} /></div>
                                 </TableCell>}
+
+                                {(props.fullpage || props.isAdmin) && <TableCell style={{ "textAlign": "center" }} onClick={onRowFeatured(token)} >
+                                    {getActionCell(token)}
+                                    </TableCell>}
                             </TableRow>
                         ))}
                 </TableBody>
             </Table>
+            {!props.fullpage &&
             <TablePagination className="TokenPagination"
                 component="div"
                 rowsPerPageOptions={[5, 10, 15, 25]}
@@ -172,6 +219,7 @@ function TokensTable(props: Props) {
                 page={page}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage} />
+            }
         </TableContainer>
     )
 }

@@ -1,3 +1,4 @@
+import { getElipsisedAddr } from "../TokensTable";
 import "./AddressComponent.scss";
 
 type Props = {
@@ -10,7 +11,7 @@ function AddressComponent(props: Props) {
     return (
         <span className={`AddressComponent ${props.className ? props.className : ""}`}
             style={{maxWidth: props.maxWidth ? props.maxWidth : "auto"}}>
-            {props.address}
+            {getElipsisedAddr(props.address)}
         </span>
     );
 }

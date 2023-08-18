@@ -1,0 +1,85 @@
+@import '../../styles/styles.scss';
+
+.VoteTokenDialog {
+    position: relative;
+
+
+    .MuiPaper-root {
+        background-color: white !important;
+        padding: 1px;
+        width: 75%;
+    }
+
+    .MuiDialogTitle-root {
+        background-color: $yellow-color;
+        color: black;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    
+    .MuiDialogContent-root
+    {
+        @media only screen and (min-width: 10px) {
+            font-size: 14px !important;
+        }
+
+        @media only screen and (min-width: 600px) {
+            font-size: 18px !important;
+        }
+    
+    
+        padding: 40px !important;
+        color: #CCC;
+        background-color: black;
+        line-height: 1.4em;
+        text-align: center;
+
+        .header {
+            margin-top: 0.8em;
+        }
+
+        .Button {
+            text-align: center;
+            padding-top: 20px;
+        }
+
+        .MuiButton-root {
+            margin-top: 1em;
+            background-color: $yellow-color;
+            color: black;
+        }
+
+        .MuiButton-root:hover {
+            background-color: #999933;
+        }
+
+        
+    }
+
+    .AgreeCheck {
+        font-size: 0.9em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.4em;
+        margin-top: 2em;
+
+        a {
+            cursor: pointer;
+        }
+
+    }
+
+
+    .ButtonWrapper {
+        display: flex;
+        justify-content: end;
+    }
+
+    button {
+        min-width: 164px;
+        
+    }
+    
+}

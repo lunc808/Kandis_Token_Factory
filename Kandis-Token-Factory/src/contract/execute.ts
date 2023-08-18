@@ -4,7 +4,7 @@ import { SubmitTokenData } from "../components/TokenDialog";
 import { Address } from "../models/address";
 import { TokenData } from "../models/query";
 import { Token, TokenUtils } from "../models/token";
-import { factoryAddress, tokenAddress } from "./address";
+import { factoryAddress, lptokenAddress, networkLCD, tokenAddress, chainID} from "./address";
 import { useCallback, useMemo } from "react"
 import { useWallet } from "@terra-money/wallet-provider"
 import Axios from "axios"
@@ -222,6 +222,125 @@ export const mintToken = async (
   return _exec(executeMsg)(wallet, connectedWallet);
 }
 
+export const importToken = async (
+  token: string,
+  wallet: Wallet,
+  connectedWallet: ConnectedWallet
+) => {
+  
+  const executeMsg = [
+    new MsgExecuteContract(
+      connectedWallet.walletAddress,
+      factoryAddress(),
+      {
+        import_token: {
+          token
+        }
+      },
+    )
+  ]
+  return _exec(executeMsg)(wallet, connectedWallet);
+}
+
+export const voteToken = async (
+  token: string,
+  wallet: Wallet,
+  connectedWallet: ConnectedWallet
+) => {
+  
+
+  const executeMsg = [
+    new MsgExecuteContract(
+      connectedWallet.walletAddress,
+      factoryAddress(),
+      {
+        vote_token: {
+          token
+        }
+      }
+    )
+  ]
+  return _exec(executeMsg)(wallet, connectedWallet);
+}
+
+export const updateVisible = async (
+  token: string,
+  visible: boolean,
+  wallet: Wallet,
+  connectedWallet: ConnectedWallet
+) => {
+  
+
+  const executeMsg = [
+    new MsgExecuteContract(
+      connectedWallet.walletAddress,
+      factoryAddress(),
+      {
+        update_visible: {
+          token,
+          visible
+        }
+      }
+    )
+  ]
+  return _exec(executeMsg)(wallet, connectedWallet);
+}
+
+export const featureToken = async (
+  token: string,
+  wallet: Wallet,
+  connectedWallet: ConnectedWallet
+) => {
+  
+
+  const executeMsg = [
+    new MsgExecuteContract(
+      connectedWallet.walletAddress,
+      factoryAddress(),
+      {
+        feature_token: {
+          token
+        }
+      }
+    )
+  ]
+  return _exec(executeMsg)(wallet, connectedWallet);
+}
+
+
+export const updateToken = async (
+  token: string,
+  description: string,
+  logo: string,
+  wallet: Wallet,
+  connectedWallet: ConnectedWallet
+) => {
+  
+
+  const executeMsg = [
+    new MsgExecuteContract(
+      connectedWallet.walletAddress,
+      token,
+      {
+        update_marketing: {
+          description
+        }
+      }
+    ),
+    new MsgExecuteContract(
+      connectedWallet.walletAddress,
+      token,
+      {
+        upload_logo: {
+            url: logo
+        }
+      }
+    )
+  ]
+  return _exec(executeMsg)(wallet, connectedWallet);
+}
+
+
 export const createNewToken = async (token: Token, wallet: Wallet, connectedWallet: ConnectedWallet) => {
 
   let serviceFee = await getServiceInfo(connectedWallet);
@@ -243,6 +362,7 @@ export const createNewToken = async (token: Token, wallet: Wallet, connectedWall
       }
     )
   ]
+
   return _exec(executeMsg)(wallet, connectedWallet);
 }
 
@@ -312,7 +432,7 @@ export const widthraw = async (
   wallet: Wallet,
   connectedWallet: ConnectedWallet
 ) => {
-  let data = amount ? {widthraw:{amount: (Number(amount) * 10 ** DECIMALS).toString()}} : {widthraw:{}}
+  let data = amount ? {withdraw:{amount: (Number(amount) * 10 ** DECIMALS).toString()}} : {withdraw:{}}
   const executeMsg = [
     new MsgExecuteContract(
       connectedWallet.walletAddress,

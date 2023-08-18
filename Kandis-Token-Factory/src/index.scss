@@ -27,6 +27,110 @@ body {
         }
     }
 
+    h3 {
+        color:$yellow-color;
+        margin:0;
+    }
+
+    .LeaderboardToken {
+        border-radius: 6px;
+        width: 100%;
+        background-color: #FFFFFF12;
+        text-align: center;
+        @media only screen and (min-width: 375px) {
+            font-size: 14px !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+        }
+
+        @media only screen and (min-width: 600px) {
+            font-size: 18px !important;
+            padding-top: 15px !important;
+            padding-bottom: 15px !important;
+        }
+    }
+
+    #ProvideLPButton {
+        color: white;
+        background-color: transparent;
+        box-sizing: border-box;
+        font-size: 20px;
+        border: 1px solid #FFFFFF !important;
+        backdrop-filter: blur(50px);
+        /* Note: backdrop-filter has minimal browser support */
+        border-radius: 10px;
+        margin: 20px;
+        cursor: pointer;
+        svg {
+            margin-right: 0.5em;
+        }
+    }
+
+    .ProvideLP {
+        margin-top: 1rem;
+        font-size: 2rem;
+        color: $yellow-color;
+        text-align: center;
+        span {
+            color: white;
+        }
+    }
+
+    .TokenUpdate {
+        @media only screen and (min-width: 375px) {
+            font-size: 14px !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+        }
+
+        @media only screen and (min-width: 600px) {
+            font-size: 18px !important;
+            padding-top: 15px !important;
+            padding-bottom: 15px !important;
+        }
+
+        .LeaderboardToken {
+            padding-top: 5px !important;
+            padding-bottom: 5px !important;
+        }
+
+        .MuiInputBase-root.MuiOutlinedInput-root {
+            border-radius: 0px;
+            border-width: 0px;
+            fieldset {
+                border-color: transparent ;
+            }
+        }
+    
+        .MuiInputBase-root.MuiOutlinedInput-root.Mui-disabled {
+            border-radius: 0px;
+    
+        }
+
+        button:hover {
+                background-color: yellowgreen;
+            }
+
+        button {
+            
+            background-color: $yellow-color;
+            padding: 3px 30px;
+            font-size: 1.2rem;
+            
+            span {
+                color: black;
+            }
+        }
+    
+    }
+
+    .Tokens {
+        .MuiButton-root {
+            padding: 0px !important;
+            float:right;
+        }
+    }
+
     .InputLabel {
         margin-left: 20px;
         font-size: 16px;

@@ -23,6 +23,9 @@ pub enum ContractError {
     AlreadyExistingToken { 
     },
 
+    #[error("InvalidMaxSupply")]
+    InvalidMaxSupply {},
+
     #[error("InvalidInput")]
     InvalidInput {},
 

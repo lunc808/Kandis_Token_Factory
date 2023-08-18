@@ -9,6 +9,8 @@ import Info from "./pages/Info";
 import Admin from "./pages/Admin";
 import CreateToken from "./pages/CreateToken";
 import StakeToken from "./pages/StakeToken";
+import Dashboard from "./pages/Dashboard";
+import TokenUpdate from "./pages/TokenUpdate";
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import NotFound from "./pages/NotFound";
 
@@ -47,9 +49,19 @@ export const useNav = () => {
             title: "Token details"
         },
         {
+            path: "/tokens/:id/update",
+            element: <TokenUpdate />,
+            title: "Token details"
+        },
+        {
             path: "/admin",
             element: <Admin />,
             title: "Admin Panel"
+        },
+        {
+            path: "/dashboard",
+            element: <Dashboard />,
+            title: "Dashboard"
         },
         /* 404 */
         { 

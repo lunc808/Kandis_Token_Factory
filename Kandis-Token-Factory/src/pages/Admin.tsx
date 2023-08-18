@@ -8,6 +8,9 @@ import * as query from "./../contract/query";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import WidthdrawDialog, { CloseType } from "../components/WithdrawDialog"
+import { TokenOverallInfo } from "../models/query";
+import TokensTable from "../components/TokensTable";
+import { Address } from "../models/address";
 
 function Admin() {
   const { enqueueSnackbar } = useSnackbar();
@@ -17,18 +20,48 @@ function Admin() {
   const navigate = useNavigate()
   const connectedWallet = useConnectedWallet() as ConnectedWallet
   const wallet = useWallet()
+  const [tokens, setTokens] = useState(new Array<TokenOverallInfo>())
   
+  const fetchData = async () => {
+    if (wallet.status === WalletStatus.WALLET_CONNECTED) {
+      try {
+        const tokensInfo = await query.getMintedTokens(connectedWallet);
+        const tokensPromises = tokensInfo.minted_tokens.map(tokenInfo=>{
+            return query.getTokenInfo(tokenInfo.token_contract, connectedWallet);
+        });
+        
+
+        let tokenInfos = await Promise.all(tokensPromises);
+
+        let tokens:TokenOverallInfo[] = tokenInfos.map((token, index) => {
+            return {
+                token_data: {
+                    ...token,
+                    total_supply: Number(token.total_supply)
+                },
+                token_feature: {
+                    ...tokensInfo.minted_tokens[index],
+                    max_of_issuer: tokensInfo.max_of_issuer,
+                    max_of_member: tokensInfo.max_of_member
+
+                }
+            }
+        });
+
+        setTokens(tokens);
+      } catch (err) {
+        console.log(err);
+      }
+      setLoading(false)
+    }
+    else {
+      setLoading(true)
+
+    }
+  }
 
   useEffect(() => {
-    const preFetch = async () => {
-      if (wallet.status === WalletStatus.WALLET_CONNECTED) {
-        setLoading(false)
-      }
-      else {
-        setLoading(true)
-      }
-    }
-    preFetch()
+    fetchData()
     fetchTokenBalance()
   }, [wallet, connectedWallet])
 
@@ -51,7 +84,7 @@ function Admin() {
       const response = await execute.updateServiceInfo( service_fee_denoms.toString(), dist_percent.toString(), dist_address, admin_address, wallet, connectedWallet);
 
 
-      if (response.logs) {
+      if (response && response.logs) {
         enqueueSnackbar(`successfully updated service info`, {variant: "success"});
         if ( admin_address != connectedWallet.walletAddress ) {
           navigate(`/`);
@@ -95,12 +128,35 @@ function Admin() {
     setDialogOpen(false);
 }
 
+  const onRowClick = (address: Address) => {};
+  const onRowFeatured = async (address: Address) => {
+      setLoading(true);
+      try {
+        let token = tokens.filter(v=>v.token_data?.address == address);
+        if ( token.length == 0 ) {
+          return;
+        }
+        await execute.updateVisible(address, !token[0].token_feature?.visible, wallet, connectedWallet);
+        await fetchData();
+      } catch (err) {
+          console.log(err);
+      }
+      setLoading(false);
+
+      
+  }
 
   return (
-    <div className="Tokens">
+    <div className="Admin">
       {loading && <Loader />}
       <ServiceInfoForm onUpdateServiceInfo={onUpdateServiceInfo} totalAmount={totalAmount} onShowDialog={()=>setDialogOpen(true)}/>
       <WidthdrawDialog open={dialogOpen} totalAmount={totalAmount} onSubmitData={onSubmitData}/>
+      <h3>Tokens List</h3>
+      <TokensTable tokens={tokens}
+                loading={false}
+                onRowClick={onRowClick} 
+                isAdmin={true}
+                onRowFeatured={onRowFeatured}/>
     </div>
   )
 }

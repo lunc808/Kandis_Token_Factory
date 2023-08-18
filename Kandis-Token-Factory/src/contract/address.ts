@@ -12,5 +12,10 @@ export const tokenAddress = () => {
     return config["classic"]["cw20-factory-token"].contractAddresses.default;
 }
 
+export const lptokenAddress = () => {
+    // @ts-ignore
+    return config["classic"]["lp-factory-token"].contractAddresses.default;
+}
+
 export const networkLCD = "https://terra-classic-lcd.publicnode.com";
 export const chainID = "columbus-5";

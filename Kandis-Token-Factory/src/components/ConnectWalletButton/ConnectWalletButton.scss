@@ -3,7 +3,14 @@
 .ConnectWalletButton {
     /* Rectangle 531 */
 
-    
+    @media only screen and (min-width: 375px) {
+        margin-left: -40px;
+    }
+
+    @media only screen and (min-width: 600px) {
+        margin-left: -5px;
+    }
+
 
     #ConnectWalletButtonMenu.connected {
         color: #FAD64B;
@@ -35,11 +42,34 @@
         }
     }
 }
-
 #ConnectWalletOptions {
+    
+    .MuiPaper-root {
+        @media only screen and (min-width: 375px) {
+            width: 140px;
+        }
+    
+        @media only screen and (min-width: 600px) {
+            width: 200px;
+        }
+    
+        @media only screen and (min-width: 768px) {
+            width: 200px;
+        }
         
-    .CopyEntry {
+        
+    } 
+
+    .MuiMenuItem-root {
+        @media only screen and (min-width: 375px) {
+            font-size: 12px;
+        }
         font-size: 14px;
+    }
+    
+    
+    .CopyEntry {
+        // font-size: 14px;
         display: flex;
         align-items: center;
         margin-right: 0.5em;

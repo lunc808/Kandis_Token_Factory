@@ -20,12 +20,12 @@ const getElipsisedAddr = (address: string) => {
 function TokenDashboard(props: Props) {
     const { token } = props;
     const { enqueueSnackbar } = useSnackbar();
-
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     return (
         <Grid className="TokenDashboard"
             container
             alignItems="center"
-            spacing={3}>
+            spacing={isMobile ? 1 : 3}>
             <Grid item xs={6} sm={6} md={3} >
                 <Card className="TokenCard" style={{ "cursor": "pointer" }} onClick={(e) => {
                     e.preventDefault();
