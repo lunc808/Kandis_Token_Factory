@@ -234,7 +234,7 @@ pub fn execute_withdraw(
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
     /* Amount of tokens to be burned mLUNA not be zero */
-    if config.admin_address.clone() != info.sender.to_string() {
+    if config.admin_address.clone() != info.sender.to_string(){
         return Err(ContractError::Unauthorized {  } );
     }
  
@@ -499,7 +499,7 @@ pub fn execute_update_service_info(
         return Err(ContractError::InvalidInput {  });
     }
 
-    if info.sender.clone() != config.admin_address  {
+    if info.sender.clone() != config.admin_address{
         return Err(ContractError::InvalidInput {});
     }
     
@@ -592,7 +592,7 @@ fn get_token_response_from_token(deps:Deps, token: String) -> StdResult<(Uint128
     if users.is_ok() {
         users?.iter().for_each(|user|{
             let balance_response = query_balance_of_tokens(
-                &deps.querier, user.to_string(), config.lp_token_address.clone());
+                &deps.querier, user.to_string(), config.native_factory_token_address.clone());
             if balance_response.is_ok() {
                 amount_of_member += balance_response.unwrap().balance;
             }   

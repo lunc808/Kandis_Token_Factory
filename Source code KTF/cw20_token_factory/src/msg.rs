@@ -3,8 +3,6 @@ use schemars::JsonSchema;
 use cw20::Cw20ReceiveMsg;
 use serde::{Deserialize, Serialize};
 
-use crate::state::TokenData;
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     /* Id of the contract uploaded for the first time to the chain
